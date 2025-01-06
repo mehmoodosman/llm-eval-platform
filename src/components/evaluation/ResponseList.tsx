@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { type Response, type ResponseListProps } from "@/types/evaluation";
 import { ResponseHeader } from "./ResponseHeader";
 import { ResponseMetrics } from "./ResponseMetrics";
+import { Card } from "@/components/ui/card";
+import { MetricsBarGraph } from "./MetricsBarGraph";
 
 const ResponseItem = memo(function ResponseItem({
   response,
@@ -69,6 +71,11 @@ export function ResponseList({ responses, isStreaming }: ResponseListProps) {
 
   if (localResponses.length === 0) return null;
 
+  // Check if any response has metrics
+  const hasMetrics = localResponses.some(
+    response => response.metrics?.evaluation
+  );
+
   return (
     <div className="mt-6 space-y-6">
       {localResponses.map((response, index) => (
@@ -78,6 +85,21 @@ export function ResponseList({ responses, isStreaming }: ResponseListProps) {
           isStreaming={isStreaming}
         />
       ))}
+
+      {/* Comparison Bar Graph */}
+      {hasMetrics && (
+        <Card className="p-6 bg-black/40 border-white/10">
+          <h3 className="text-sm font-medium text-white/80 mb-4">
+            Model Comparison
+          </h3>
+          <MetricsBarGraph
+            responses={localResponses.map(r => ({
+              model: r.model,
+              metrics: r.metrics,
+            }))}
+          />
+        </Card>
+      )}
     </div>
   );
 }

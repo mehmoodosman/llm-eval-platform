@@ -33,6 +33,7 @@ export function ResponseMetrics({ metrics }: ResponseMetricsProps) {
 
   return (
     <div className="px-6 py-3 border-t border-white/5 bg-white/[0.02]">
+      {/* Streaming Metrics */}
       {hasStreamingMetrics && metrics.streaming && (
         <div className="grid grid-cols-3 gap-6 text-sm">
           <div className="space-y-1">
@@ -56,6 +57,7 @@ export function ResponseMetrics({ metrics }: ResponseMetricsProps) {
         </div>
       )}
 
+      {/* Evaluation Metrics */}
       {hasEvaluationMetrics && metrics.evaluation && (
         <div
           className={`grid grid-cols-3 gap-6 text-sm ${hasStreamingMetrics ? "mt-3 pt-3 border-t border-white/5" : ""}`}

@@ -42,7 +42,8 @@ export const useEvaluationStore = create<EvaluationStore>(
   (set: Parameters<EvaluationStoreCreator>[0]) => ({
     systemPrompt: "You are a helpful assistant.",
     userMessage: "What is the french revolution in 3 sentences?",
-    expectedOutput: "The capital of France is Paris.",
+    expectedOutput:
+      "The French Revolution, which began in 1789, was a period of radical social and political change in France that marked the decline of absolute monarchy and the rise of democracy. Fueled by Enlightenment ideas, economic hardship, and social inequality, the revolution led to the overthrow of King Louis XVI, the establishment of the First French Republic, and significant changes in the rights of citizens. It also inspired revolutionary movements worldwide, though it was marked by periods of violence, including the Reign of Terror, and ultimately set the stage for the rise of Napoleon Bonaparte.",
     selectedModels: ["gpt-4o-mini", "gpt-3.5-turbo"],
     selectedMetrics: [
       EvaluationMetric.EXACT_MATCH,
