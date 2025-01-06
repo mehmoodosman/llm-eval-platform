@@ -5,6 +5,17 @@ interface Response {
   model: string;
   response: string;
   error?: string;
+  metrics?: {
+    startTime: number;
+    endTime: number;
+    duration: number;
+    streaming?: {
+      timeToFirstToken: number;
+      tokensPerSecond: number;
+      totalResponseTime: number;
+      totalTokens: number;
+    };
+  };
 }
 
 interface EvaluationStore {
@@ -27,7 +38,7 @@ type EvaluationStoreCreator = StateCreator<EvaluationStore>;
 export const useEvaluationStore = create<EvaluationStore>(
   (set: Parameters<EvaluationStoreCreator>[0]) => ({
     systemPrompt: "You are a helpful assistant.",
-    userMessage: "What is the capital of France?",
+    userMessage: "What is the french revolution in 3 sentences?",
     expectedOutput: "The capital of France is Paris.",
     selectedModels: ["gpt-4o-mini", "gpt-3.5-turbo"],
     responses: [],
