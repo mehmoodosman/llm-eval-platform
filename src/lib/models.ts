@@ -27,7 +27,7 @@ export const LLM_MODELS: ModelCategory[] = [
   {
     category: "Google",
     models: [
-      { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+      { value: "gemini-2.0-flash-exp", label: "Gemini 2.0 Flash" },
       { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
     ],
   },
