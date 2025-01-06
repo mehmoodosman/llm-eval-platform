@@ -71,17 +71,16 @@ export function ModelSelector({
                       {category.category}
                     </div>
                     {category.models.map(model => (
-                      <button
+                      <div
                         key={model.value}
-                        type="button"
                         className="w-full px-3 py-2 text-left text-white/90 hover:bg-white/5 flex items-center space-x-2.5 transition-colors"
-                        onClick={() => onToggleModel(model.value)}
                       >
                         <Checkbox
                           checked={selectedModels.includes(model.value)}
+                          onCheckedChange={() => onToggleModel(model.value)}
+                          label={model.label}
                         />
-                        <span className="text-sm">{model.label}</span>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 ))}

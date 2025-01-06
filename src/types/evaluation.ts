@@ -1,22 +1,32 @@
-import { TimingInfo } from "llm-chain/dist/types";
+import { TimingInfo as BaseTimingInfo } from "llm-chain/dist/types";
 import { StreamingMetrics } from "llm-chain/dist/utils/timing";
 
-export type { TimingInfo, StreamingMetrics };
+export type { StreamingMetrics };
+
+export interface TimingInfo extends BaseTimingInfo {
+  streaming?: StreamingMetrics;
+  evaluation?: { [key in EvaluationMetric]?: number };
+}
+
+export enum EvaluationMetric {
+  EXACT_MATCH = "EXACT_MATCH",
+  COSINE_SIMILARITY = "COSINE_SIMILARITY",
+  LLM_JUDGE = "LLM_JUDGE",
+}
 
 export interface EvaluationRequest {
   systemPrompt: string;
   userMessage: string;
   expectedOutput: string;
   selectedModels: string[];
+  selectedMetrics: EvaluationMetric[];
 }
 
 export interface Response {
   model: string;
   response: string;
   error?: string;
-  metrics?: TimingInfo & {
-    streaming?: StreamingMetrics;
-  };
+  metrics?: TimingInfo;
 }
 
 export interface ResponseListProps {
@@ -29,9 +39,7 @@ export interface StreamUpdate {
   response: string;
   delta?: string;
   error?: string;
-  metrics?: TimingInfo & {
-    streaming?: StreamingMetrics;
-  };
+  metrics?: TimingInfo;
 }
 
 export class EvaluationError extends Error {

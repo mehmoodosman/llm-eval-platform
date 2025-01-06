@@ -2,20 +2,31 @@ import { StreamUpdate } from "@/types/evaluation";
 
 const encoder = new TextEncoder();
 
+interface StreamError extends Error {
+  code?: string;
+}
+
 export async function writeStreamUpdate(
   writer: WritableStreamDefaultWriter<Uint8Array>,
   update: StreamUpdate
 ): Promise<void> {
-  await writer.write(encoder.encode(`data: ${JSON.stringify(update)}\n\n`));
+  try {
+    await writer.write(encoder.encode(`data: ${JSON.stringify(update)}\n\n`));
+  } catch (error) {
+    // Ignore write errors if they're due to a closed stream
+    if ((error as StreamError)?.code !== "ERR_INVALID_STATE") {
+      throw error;
+    }
+  }
 }
 
 export function createResponseStream(): {
-  stream: ReadableStream<Uint8Array>;
+  stream: ReadableStream;
   writer: WritableStreamDefaultWriter<Uint8Array>;
 } {
-  const stream = new TransformStream<Uint8Array, Uint8Array>();
-  const writer = stream.writable.getWriter();
-  return { stream: stream.readable, writer };
+  const { readable, writable } = new TransformStream();
+  const writer = writable.getWriter();
+  return { stream: readable, writer };
 }
 
 export function createStreamResponse(

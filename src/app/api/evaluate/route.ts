@@ -6,6 +6,7 @@ import {
   writeStreamUpdate,
 } from "@/utils/stream";
 import { Logger } from "@/utils/logger";
+import { evaluateResponse } from "@/lib/evaluation-metrics";
 
 const logger = new Logger("evaluation-api");
 
@@ -13,6 +14,8 @@ async function processModelEvaluation(
   modelId: string,
   systemPrompt: string,
   userMessage: string,
+  expectedOutput: string,
+  selectedMetrics: EvaluationRequest["selectedMetrics"],
   modelResponses: Map<string, string>,
   writer: WritableStreamDefaultWriter<Uint8Array>
 ): Promise<void> {
@@ -26,6 +29,8 @@ async function processModelEvaluation(
       response: "",
       delta: "",
     });
+
+    let lastTiming: any = null;
 
     await client.streamChatCompletion(
       {
@@ -47,19 +52,36 @@ async function processModelEvaluation(
           delta: message,
         });
       },
-      // Handle metrics
+      // Store timing metrics
       async timing => {
-        await writeStreamUpdate(writer, {
-          model: modelId,
-          response: modelResponses.get(modelId) || "",
-          metrics: {
-            ...timing,
-            streaming: timing.streaming,
-          },
-        });
-        logger.debug("Model timing metrics", { modelId, timing });
+        lastTiming = timing;
       }
     );
+
+    // After completion, evaluate the final response
+    const finalResponse = modelResponses.get(modelId) || "";
+    const evaluationResults = await evaluateResponse(
+      finalResponse,
+      expectedOutput,
+      selectedMetrics
+    );
+
+    // Send final update with both timing and evaluation metrics
+    await writeStreamUpdate(writer, {
+      model: modelId,
+      response: finalResponse,
+      metrics: {
+        ...lastTiming,
+        streaming: lastTiming?.streaming,
+        evaluation: evaluationResults,
+      },
+    });
+
+    logger.debug("Model completion and evaluation metrics", {
+      modelId,
+      timing: lastTiming,
+      evaluationResults,
+    });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
@@ -74,39 +96,68 @@ async function processModelEvaluation(
 
 export async function POST(request: Request) {
   const { stream, writer } = createResponseStream();
+  let isClosing = false;
 
   // Start processing in the background
   (async () => {
     try {
       const body = (await request.json()) as EvaluationRequest;
-      const { systemPrompt, userMessage, selectedModels } = body;
+      const {
+        systemPrompt,
+        userMessage,
+        expectedOutput,
+        selectedModels,
+        selectedMetrics,
+      } = body;
 
-      logger.info("Processing evaluation request", { selectedModels });
+      logger.info("Processing evaluation request", {
+        selectedModels,
+        selectedMetrics,
+      });
 
       // Track responses for each model
       const modelResponses = new Map<string, string>();
 
       // Process each model in parallel
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         selectedModels.map(modelId =>
           processModelEvaluation(
             modelId,
             systemPrompt,
             userMessage,
+            expectedOutput,
+            selectedMetrics,
             modelResponses,
             writer
           )
         )
       );
+
+      // Log any errors from the parallel processing
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          logger.error(
+            `Error processing model ${selectedModels[index]}:`,
+            result.reason
+          );
+        }
+      });
     } catch (error) {
       logger.error("Evaluation error", error);
-      await writeStreamUpdate(writer, {
-        model: "system",
-        response: "",
-        error: "Failed to process evaluation request",
-      });
+      if (!isClosing) {
+        await writeStreamUpdate(writer, {
+          model: "system",
+          response: "",
+          error: "Failed to process evaluation request",
+        });
+      }
     } finally {
-      await writer.close();
+      isClosing = true;
+      try {
+        await writer.close();
+      } catch (error) {
+        logger.error("Error closing writer:", error);
+      }
     }
   })();
 

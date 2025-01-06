@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { StreamUpdate, Response, EvaluationRequest } from "@/types/evaluation";
 import { Logger } from "@/utils/logger";
 import { submitEvaluation } from "@/lib/evaluation-service";
+import { useEvaluationStore } from "@/stores/evaluation-store";
 
 const logger = new Logger("useEvaluationStream");
 
@@ -91,7 +92,9 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
   };
 
   const handleSubmit = async (request: EvaluationRequest) => {
+    const setIsLoading = useEvaluationStore.getState().setIsLoading;
     setIsStreaming(true);
+    setIsLoading(true);
     setResponses([]);
 
     try {
@@ -108,6 +111,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
       ]);
     } finally {
       setIsStreaming(false);
+      setIsLoading(false);
     }
   };
 

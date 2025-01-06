@@ -5,6 +5,7 @@ import { TextAreaField } from "./evaluation/TextAreaField";
 import { ModelSelector } from "./evaluation/ModelSelector";
 import { ResponseList } from "./evaluation/ResponseList";
 import { EvaluationButton } from "./evaluation/EvaluationButton";
+import { MetricsSelector } from "./evaluation/MetricsSelector";
 import { useEvaluationStream } from "@/hooks/useEvaluationStream";
 
 export function EvaluationForm() {
@@ -13,11 +14,13 @@ export function EvaluationForm() {
     userMessage,
     expectedOutput,
     selectedModels,
+    selectedMetrics,
     isLoading,
     setSystemPrompt,
     setUserMessage,
     setExpectedOutput,
     toggleModel,
+    toggleMetric,
   } = useEvaluationStore();
 
   const { isStreaming, handleSubmit, responses } = useEvaluationStream();
@@ -29,6 +32,7 @@ export function EvaluationForm() {
       userMessage,
       expectedOutput,
       selectedModels,
+      selectedMetrics,
     });
   };
 
@@ -58,6 +62,11 @@ export function EvaluationForm() {
       <ModelSelector
         selectedModels={selectedModels}
         onToggleModel={toggleModel}
+      />
+
+      <MetricsSelector
+        selectedMetrics={selectedMetrics}
+        onToggleMetric={toggleMetric}
       />
 
       <EvaluationButton isLoading={isLoading} onClick={onSubmit} />

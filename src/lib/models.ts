@@ -34,8 +34,8 @@ export const LLM_MODELS: ModelCategory[] = [
   {
     category: "Meta",
     models: [
-      { value: "llama-3.1-8b", label: "LLaMA 3.1 8B" },
-      { value: "llama-3.1-70b", label: "LLaMA 3.1 70B" },
+      { value: "llama-3.1-8b-instant", label: "LLaMA 3.1 8B Instant" },
+      { value: "llama-3.3-70b-versatile", label: "LLaMA 3.3 70B Versatile" },
     ],
   },
 ];
