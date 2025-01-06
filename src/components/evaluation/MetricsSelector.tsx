@@ -18,7 +18,9 @@ export function MetricsSelector({
 }: MetricsSelectorProps) {
   return (
     <div className="space-y-4">
-      <label className="text-sm font-medium">Evaluation Metrics</label>
+      <label className="text-sm font-medium text-white/80">
+        Evaluation Metrics
+      </label>
       <div className="flex flex-wrap gap-4">
         {Object.values(EvaluationMetric).map(metric => (
           <Checkbox

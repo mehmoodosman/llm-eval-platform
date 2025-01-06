@@ -46,7 +46,7 @@ export function Checkbox({
         className="flex items-center gap-2 cursor-pointer w-full"
       >
         {CheckboxElement}
-        <span className="text-sm flex-1">{label}</span>
+        <span className="text-sm flex-1 text-white/80">{label}</span>
       </label>
     );
   }
