@@ -210,10 +210,37 @@ export async function createExperimentResult(
 }
 
 export async function getExperimentResults(experimentId: string) {
-  const results = await db
-    .select()
+  console.log("Getting experiment results for:", experimentId);
+
+  const query = db
+    .select({
+      id: experimentResults.id,
+      experimentId: experimentResults.experimentId,
+      modelId: experimentResults.modelId,
+      testCaseId: experimentResults.testCaseId,
+      response: experimentResults.response,
+      exactMatchScore: experimentResults.exactMatchScore,
+      llmMatchScore: experimentResults.llmMatchScore,
+      cosineSimilarityScore: experimentResults.cosineSimilarityScore,
+      metrics: experimentResults.metrics,
+      error: experimentResults.error,
+      model: sql<any>`
+        JSONB_BUILD_OBJECT(
+          'id', ${models.id},
+          'value', ${models.value},
+          'label', ${models.label},
+          'category', ${models.category}
+        )
+      `,
+    })
     .from(experimentResults)
+    .leftJoin(models, eq(experimentResults.modelId, models.id))
     .where(eq(experimentResults.experimentId, experimentId));
+
+  console.log("Generated SQL query:", query.toSQL());
+
+  const results = await query;
+  console.log("Query results:", results);
 
   return results;
 }

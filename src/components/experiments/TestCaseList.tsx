@@ -92,15 +92,20 @@ export function TestCaseList({ experimentId }: TestCaseListProps) {
                   {testCase.expectedOutput}
                 </div>
               </div>
-              <div className="flex gap-2">
-                {testCase.metrics.map(metric => (
-                  <div
-                    key={metric}
-                    className="px-2 py-1 text-xs font-medium rounded-full bg-white/5 text-white/60"
-                  >
-                    {metric}
-                  </div>
-                ))}
+              <div className="space-y-2">
+                <div className="text-xs font-medium text-white/60">
+                  Selected Metrics
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {testCase.metrics.map(metric => (
+                    <div
+                      key={metric}
+                      className="px-2 py-1 text-xs font-medium rounded-full bg-white/5 text-white/60"
+                    >
+                      {metric}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {testCase.results && testCase.results.length > 0 && (
@@ -157,6 +162,31 @@ export function TestCaseList({ experimentId }: TestCaseListProps) {
                           </div>
                         )}
                       </div>
+
+                      {result.metrics &&
+                        Object.keys(result.metrics).length > 0 && (
+                          <div className="mt-4">
+                            <div className="text-xs font-medium text-white/60 mb-2">
+                              Evaluation Metrics
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              {Object.entries(result.metrics).map(
+                                ([metric, score]) => (
+                                  <div key={metric}>
+                                    <div className="text-xs font-medium text-white/60">
+                                      {metric}
+                                    </div>
+                                    <div className="text-sm text-white/80">
+                                      {typeof score === "number"
+                                        ? `${(score * 100).toFixed(2)}%`
+                                        : score}
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                       {result.error && (
                         <div className="mt-4">

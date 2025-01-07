@@ -28,19 +28,21 @@ export async function POST(request: Request) {
     );
 
     // Validate required fields before schema validation
-    if (!json.experimentId || !json.testCaseId) {
+    if (!json.experimentId || !json.testCaseId || !json.modelId) {
       console.error("Missing required fields:", {
         experimentId: json.experimentId,
         testCaseId: json.testCaseId,
+        modelId: json.modelId,
       });
       return NextResponse.json(
-        { error: "experimentId and testCaseId are required" },
+        { error: "experimentId, testCaseId, and modelId are required" },
         { status: 400 }
       );
     }
 
+    console.log("Validating with schema:", json);
     const body = createResultSchema.parse(json);
-    console.log("Parsed body:", JSON.stringify(body, null, 2));
+    console.log("Schema validation passed:", JSON.stringify(body, null, 2));
 
     const transformedData = {
       ...body,
@@ -58,12 +60,20 @@ export async function POST(request: Request) {
       JSON.stringify(transformedData, null, 2)
     );
 
+    console.log("Calling createExperimentResult with:", transformedData);
     const result = await createExperimentResult(transformedData);
     console.log("Created experiment result:", result);
 
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error creating experiment result:", error);
+    if (error instanceof z.ZodError) {
+      console.error("Validation error:", error.errors);
+      return NextResponse.json(
+        { error: "Validation failed", details: error.errors },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: "Failed to create experiment result" },
       { status: 500 }
@@ -77,6 +87,8 @@ export async function GET(request: Request) {
     const experimentId = searchParams.get("experimentId");
     const testCaseId = searchParams.get("testCaseId");
 
+    console.log("Fetching experiment results:", { experimentId, testCaseId });
+
     if (!experimentId) {
       return NextResponse.json(
         { error: "Experiment ID is required" },
@@ -86,6 +98,7 @@ export async function GET(request: Request) {
 
     if (testCaseId) {
       const result = await getTestCaseResults(experimentId, testCaseId);
+      console.log("Test case results:", result);
       if (!result) {
         return NextResponse.json(
           { error: "Result not found" },
@@ -96,6 +109,7 @@ export async function GET(request: Request) {
     }
 
     const results = await getExperimentResults(experimentId);
+    console.log("All experiment results:", results);
     return NextResponse.json(results);
   } catch (error) {
     console.error("Error fetching experiment results:", error);

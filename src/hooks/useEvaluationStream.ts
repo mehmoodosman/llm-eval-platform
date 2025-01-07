@@ -3,6 +3,7 @@ import { StreamUpdate, Response, EvaluationRequest } from "@/types/evaluation";
 import { Logger } from "@/utils/logger";
 import { submitEvaluation } from "@/lib/evaluation-service";
 import { useEvaluationStore } from "@/stores/evaluation-store";
+import { ALL_MODELS } from "@/lib/models";
 
 const logger = new Logger("useEvaluationStream");
 
@@ -119,19 +120,31 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
       // Save results for each model response
       await Promise.all(
         responses.map(async response => {
+          // Convert model value to UUID
+          const modelId = ALL_MODELS.find(m => m.value === response.model)?.id;
+          console.log("Found model ID:", { model: response.model, modelId });
+
+          if (!modelId) {
+            console.error("Model not found:", response.model);
+            throw new Error(`Could not find model ID for ${response.model}`);
+          }
+
           const result = {
             experimentId,
             testCaseId,
+            modelId,
             response: response.response,
             error: response.error,
             metrics: response.metrics?.evaluation,
             exactMatchScore:
               response.metrics?.evaluation?.EXACT_MATCH?.toString(),
-            llmMatchScore: response.metrics?.evaluation?.LLM_JUDGE?.toString(),
+            llmMatchScore: response.metrics?.evaluation?.LLM_JUDGE
+              ? (response.metrics.evaluation.LLM_JUDGE / 100).toString()
+              : undefined,
             cosineSimilarityScore:
               response.metrics?.evaluation?.COSINE_SIMILARITY?.toString(),
           };
-          console.log("Saving result for model:", response.model, result);
+          console.log("Prepared result for saving:", result);
 
           const res = await fetch("/api/experiment-results", {
             method: "POST",
@@ -144,6 +157,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
             console.error("Failed to save result:", {
               status: res.status,
               error: errorText,
+              result,
             });
             throw new Error(
               `Failed to save result for model ${response.model}: ${errorText}`
@@ -162,6 +176,13 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
 
   const createExperimentAndTestCase = async (request: EvaluationRequest) => {
     try {
+      // Get current experiment ID from store
+      const currentExperimentId = useEvaluationStore.getState().experimentId;
+
+      if (!currentExperimentId) {
+        throw new Error("No experiment ID found. Cannot create test case.");
+      }
+
       // Create test case first
       console.log("Creating test case with:", {
         userMessage: request.userMessage,
@@ -189,38 +210,29 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
       console.log("Created test case:", testCase);
       setTestCaseId(testCase.id);
 
-      // Create experiment with the test case
-      console.log("Creating experiment with:", {
-        name: `Evaluation ${new Date().toISOString()}`,
-        systemPrompt: request.systemPrompt,
-        model: request.selectedModels[0],
-        testCaseIds: [testCase.id],
-      });
+      // Link test case to existing experiment
+      const linkResponse = await fetch(
+        `/api/experiments/${currentExperimentId}/test-cases`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userMessage: request.userMessage,
+            expectedOutput: request.expectedOutput,
+            responses: [],
+          }),
+        }
+      );
 
-      const experimentResponse = await fetch("/api/experiments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: `Evaluation ${new Date().toISOString()}`,
-          systemPrompt: request.systemPrompt,
-          model: request.selectedModels[0], // Use first model as primary
-          testCaseIds: [testCase.id],
-        }),
-      });
-
-      if (!experimentResponse.ok) {
-        const error = await experimentResponse.text();
-        console.error("Failed to create experiment:", error);
-        throw new Error("Failed to create experiment");
+      if (!linkResponse.ok) {
+        const error = await linkResponse.text();
+        console.error("Failed to link test case to experiment:", error);
+        throw new Error("Failed to link test case to experiment");
       }
 
-      const experiment = await experimentResponse.json();
-      console.log("Created experiment:", experiment);
-      setExperimentId(experiment.id);
-
-      return { experimentId: experiment.id, testCaseId: testCase.id };
+      return { experimentId: currentExperimentId, testCaseId: testCase.id };
     } catch (error) {
-      logger.error("Error creating experiment and test case:", error);
+      logger.error("Error creating test case:", error);
       throw error;
     }
   };

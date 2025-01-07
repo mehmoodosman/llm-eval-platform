@@ -5,6 +5,7 @@ import { useEvaluationStore } from "@/stores/evaluation-store";
 import { useEffect } from "react";
 import { useEvaluationStream } from "@/hooks/useEvaluationStream";
 import { TestCaseList } from "./TestCaseList";
+import { ExperimentResults } from "./ExperimentResults";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ExperimentTestCasesProps {
@@ -70,6 +71,7 @@ export function ExperimentTestCases({
           <TabsList className="bg-slate-900/50 border border-white/5">
             <TabsTrigger value="add">Add Test Case</TabsTrigger>
             <TabsTrigger value="list">View Test Cases</TabsTrigger>
+            <TabsTrigger value="results">View Results</TabsTrigger>
           </TabsList>
         </div>
 
@@ -79,6 +81,10 @@ export function ExperimentTestCases({
 
         <TabsContent value="list">
           <TestCaseList experimentId={experimentId} />
+        </TabsContent>
+
+        <TabsContent value="results">
+          <ExperimentResults experimentId={experimentId} />
         </TabsContent>
       </Tabs>
     </div>

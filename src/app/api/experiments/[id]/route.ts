@@ -11,9 +11,11 @@ import { sql } from "drizzle-orm";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
     const result = await db
       .select({
         id: experiments.id,
@@ -48,7 +50,7 @@ export async function GET(
         eq(experiments.id, experimentModels.experimentId)
       )
       .leftJoin(models, eq(experimentModels.modelId, models.id))
-      .where(eq(experiments.id, params.id))
+      .where(eq(experiments.id, id))
       .groupBy(experiments.id);
 
     if (!result.length) {
