@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { StateCreator } from "zustand";
 import { EvaluationMetric } from "@/types/evaluation";
 
 interface Response {
@@ -38,8 +37,6 @@ interface EvaluationStore {
   setExperimentId: (id: string) => void;
   saveTestCase: () => Promise<void>;
 }
-
-type EvaluationStoreCreator = StateCreator<EvaluationStore>;
 
 export const useEvaluationStore = create<EvaluationStore>((set, get) => ({
   systemPrompt: "You are a helpful assistant.",

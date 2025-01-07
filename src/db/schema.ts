@@ -1,13 +1,4 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  integer,
-  boolean,
-  json,
-  decimal,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, json } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { EvaluationMetric } from "@/types/evaluation";
 

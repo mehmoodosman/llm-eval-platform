@@ -1,6 +1,6 @@
 "use client";
 
-import { Play, Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -75,15 +75,13 @@ export function EvaluationButton({
                   before:absolute before:inset-0 
                   before:bg-gradient-to-r before:from-white/10 before:via-white/5 before:to-transparent 
                   before:rounded-2xl before:pointer-events-none
-                  ${isLoading ? "animate-pulse" : ""}
+                  ${isLoading ? "" : ""}
                 `}
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin opacity-90" />
-                    <span className="inline-block animate-pulse">
-                      Evaluating...
-                    </span>
+                    <span className="inline-block">Evaluating...</span>
                   </>
                 ) : (
                   <>

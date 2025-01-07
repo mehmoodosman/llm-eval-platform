@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { ExperimentTestCases } from "@/components/experiments/ExperimentTestCases";
-import Link from "next/link";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,6 +9,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ChevronRight, Home } from "lucide-react";
+import type { Model } from "@/types/experiments";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -69,7 +69,7 @@ export default async function ExperimentPage({ params }: PageProps) {
             </h1>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                {experiment.models.map((model: any) => (
+                {experiment.models.map((model: Model) => (
                   <span
                     key={model.id}
                     className="inline-flex items-center rounded-md bg-primary/10 px-2.5 py-1.5 text-sm font-medium text-primary ring-1 ring-inset ring-primary/20"

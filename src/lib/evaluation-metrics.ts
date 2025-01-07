@@ -87,7 +87,7 @@ Example output:
 
   logger.info("LLM Judge result", { result });
   const score = JSON.parse(result.choices[0].message.content || "0");
-  return score.score;
+  return score.score / 100;
 }
 
 // Main evaluation function that runs all selected metrics

@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 import { env } from "@/config/env";
 import { seedModels } from "./operations";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function dropAllTables(db: any) {
   console.log("Dropping all existing tables...");
 

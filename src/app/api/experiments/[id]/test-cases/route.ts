@@ -28,7 +28,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const { userMessage, expectedOutput, responses } = await request.json();
+    const { userMessage, expectedOutput } = await request.json();
 
     const experiment = await db
       .select()

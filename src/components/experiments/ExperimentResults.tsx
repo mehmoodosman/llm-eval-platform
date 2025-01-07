@@ -29,13 +29,6 @@ interface TestCase {
   metrics: string[];
 }
 
-interface Model {
-  id: string;
-  value: string;
-  label: string;
-  category: string;
-}
-
 interface ExperimentResultsProps {
   experimentId: string;
 }
@@ -58,16 +51,6 @@ export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
     `${baseUrl}/api/experiments/${experimentId}/test-cases`,
     fetcher
   );
-
-  // Convert test cases array to record for easy lookup
-  const testCases =
-    testCasesArray?.reduce(
-      (acc: Record<string, TestCase>, testCase: TestCase) => {
-        acc[testCase.id] = testCase;
-        return acc;
-      },
-      {}
-    ) || {};
 
   const isLoading =
     !results && !resultsError && !testCasesArray && !testCasesError;
@@ -147,11 +130,15 @@ export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
           r => r.metrics?.[metric] !== undefined
         );
         if (validMetricResults.length > 0) {
-          averages.metrics[metric] =
+          const rawAverage =
             validMetricResults.reduce(
               (sum, r) => sum + (r.metrics?.[metric] || 0),
               0
             ) / validMetricResults.length;
+
+          // Convert LLM_JUDGE scores from percentage to decimal
+          averages.metrics[metric] =
+            metric === "LLM_JUDGE" ? rawAverage / 100 : rawAverage;
         }
       });
 

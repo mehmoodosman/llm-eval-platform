@@ -16,7 +16,7 @@ interface UseEvaluationStreamReturn {
 export function useEvaluationStream(): UseEvaluationStreamReturn {
   const [isStreaming, setIsStreaming] = useState(false);
   const [responses, setResponses] = useState<Response[]>([]);
-  const [experimentId, setExperimentId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [testCaseId, setTestCaseId] = useState<string | null>(null);
 
   const processStreamLine = (

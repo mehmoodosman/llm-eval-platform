@@ -30,6 +30,7 @@ async function processModelEvaluation(
       delta: "",
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let lastTiming: any = null;
 
     await client.streamChatCompletion(

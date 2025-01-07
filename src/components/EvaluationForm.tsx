@@ -19,7 +19,6 @@ export function EvaluationForm({ onSubmit }: EvaluationFormProps) {
     selectedModels,
     selectedMetrics,
     isLoading,
-    setSystemPrompt,
     setUserMessage,
     setExpectedOutput,
     toggleMetric,

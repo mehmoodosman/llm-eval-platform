@@ -1,5 +1,4 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 export async function up(db: PostgresJsDatabase) {

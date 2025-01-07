@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ModelSelector } from "@/components/evaluation/ModelSelector";
 import { ALL_MODELS } from "@/lib/models";
+import type { Experiment } from "@/types/experiments";
 
 interface CreateExperimentFormProps {
-  onSuccess?: (experiment: any) => void;
+  onSuccess?: (experiment: Experiment) => void;
 }
 
 export function CreateExperimentForm({ onSuccess }: CreateExperimentFormProps) {

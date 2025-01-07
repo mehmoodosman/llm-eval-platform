@@ -51,14 +51,11 @@ export function MetricsBarGraph({ responses }: MetricsBarGraphProps) {
     // Add each model's value for this metric
     validResponses.forEach(response => {
       if (response.metrics?.evaluation) {
-        let value =
+        const value =
           response.metrics.evaluation[
             metric as keyof typeof response.metrics.evaluation
           ] || 0;
-        // Normalize LLM Judge values to be between 0 and 1
-        if (metric === "LLM_JUDGE") {
-          value = value / 100;
-        }
+
         dataPoint[response.model] = value;
       }
     });

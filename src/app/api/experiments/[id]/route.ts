@@ -9,6 +9,13 @@ import {
 import { eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 
+type ModelResult = {
+  id: string;
+  value: string;
+  label: string;
+  category: string;
+};
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -23,7 +30,7 @@ export async function GET(
         systemPrompt: experiments.systemPrompt,
         createdAt: experiments.createdAt,
         updatedAt: experiments.updatedAt,
-        models: sql<any>`
+        models: sql<ModelResult[]>`
           COALESCE(
             JSONB_AGG(
               JSONB_BUILD_OBJECT(

@@ -10,6 +10,24 @@ import {
 } from "./schema";
 import { EvaluationMetric } from "@/types/evaluation";
 
+// Type definitions for SQL results
+type ModelAggregation = {
+  id: string;
+  value: string;
+  label: string;
+  category: string;
+};
+
+type ExperimentResultAggregation = {
+  id: string;
+  response: string;
+  exactMatchScore: string | null;
+  llmMatchScore: string | null;
+  cosineSimilarityScore: string | null;
+  metrics: Record<EvaluationMetric, number> | null;
+  error: string | null;
+};
+
 export type CreateExperimentInput = {
   name: string;
   systemPrompt: string;
@@ -71,7 +89,7 @@ export async function getExperiment(id: string) {
   const result = await db
     .select({
       experiment: experiments,
-      models: sql<any>`
+      models: sql<ModelAggregation[]>`
         COALESCE(
           JSONB_AGG(
             JSONB_BUILD_OBJECT(
@@ -133,7 +151,7 @@ export async function getTestCasesForExperiment(experimentId: string) {
       expectedOutput: testCases.expectedOutput,
       metrics: testCases.metrics,
       createdAt: testCases.createdAt,
-      results: sql<any>`
+      results: sql<ExperimentResultAggregation[]>`
         COALESCE(
           JSONB_AGG(
             CASE WHEN ${experimentResults.id} IS NOT NULL THEN
@@ -224,7 +242,7 @@ export async function getExperimentResults(experimentId: string) {
       cosineSimilarityScore: experimentResults.cosineSimilarityScore,
       metrics: experimentResults.metrics,
       error: experimentResults.error,
-      model: sql<any>`
+      model: sql<ModelAggregation>`
         JSONB_BUILD_OBJECT(
           'id', ${models.id},
           'value', ${models.value},
@@ -270,7 +288,7 @@ export async function listExperiments() {
       systemPrompt: experiments.systemPrompt,
       createdAt: experiments.createdAt,
       updatedAt: experiments.updatedAt,
-      models: sql<any>`
+      models: sql<ModelAggregation[]>`
         COALESCE(
           JSONB_AGG(
             JSONB_BUILD_OBJECT(

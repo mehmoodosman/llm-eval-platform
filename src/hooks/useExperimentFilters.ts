@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import type {
   Experiment,
   SortField,
-  SortOrder,
   ExperimentSortConfig,
 } from "@/types/experiments";
 

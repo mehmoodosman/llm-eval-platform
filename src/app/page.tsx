@@ -1,5 +1,4 @@
 import { ExperimentList } from "@/components/experiments/ExperimentList";
-import { CreateExperimentDialog } from "@/components/experiments/CreateExperimentDialog";
 
 export default function Home() {
   return (
