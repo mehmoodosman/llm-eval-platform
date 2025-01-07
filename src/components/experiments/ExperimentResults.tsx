@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import useSWR from "swr";
 
 interface ExperimentResult {
   id: string;
@@ -40,67 +40,49 @@ interface ExperimentResultsProps {
   experimentId: string;
 }
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+async function fetcher(url: string) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("An error occurred while fetching the data.");
+  return res.json();
+}
+
 export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
-  const [results, setResults] = useState<ExperimentResult[]>([]);
-  const [testCases, setTestCases] = useState<Record<string, TestCase>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: results, error: resultsError } = useSWR<ExperimentResult[]>(
+    `${baseUrl}/api/experiment-results?experimentId=${experimentId}`,
+    fetcher
+  );
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        console.log("Fetching results for experiment:", experimentId);
-        // Fetch results
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-        const resultsResponse = await fetch(
-          `${baseUrl}/api/experiment-results?experimentId=${experimentId}`
-        );
-        if (!resultsResponse.ok) throw new Error("Failed to fetch results");
-        const resultsData = await resultsResponse.json();
-        console.log("Fetched results:", resultsData);
-        setResults(resultsData);
+  const { data: testCasesArray, error: testCasesError } = useSWR<TestCase[]>(
+    `${baseUrl}/api/experiments/${experimentId}/test-cases`,
+    fetcher
+  );
 
-        // Fetch test cases
-        const testCasesResponse = await fetch(
-          `${baseUrl}/api/experiments/${experimentId}/test-cases`
-        );
-        if (!testCasesResponse.ok)
-          throw new Error("Failed to fetch test cases");
-        const testCasesData = await testCasesResponse.json();
-        console.log("Fetched test cases:", testCasesData);
+  // Convert test cases array to record for easy lookup
+  const testCases =
+    testCasesArray?.reduce(
+      (acc: Record<string, TestCase>, testCase: TestCase) => {
+        acc[testCase.id] = testCase;
+        return acc;
+      },
+      {}
+    ) || {};
 
-        // Convert array to record for easy lookup
-        const testCasesRecord = testCasesData.reduce(
-          (acc: Record<string, TestCase>, testCase: TestCase) => {
-            acc[testCase.id] = testCase;
-            return acc;
-          },
-          {}
-        );
-        console.log("Processed test cases:", testCasesRecord);
-        setTestCases(testCasesRecord);
-      } catch (err) {
-        console.error("Error in ExperimentResults:", err);
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [experimentId]);
+  const isLoading =
+    !results && !resultsError && !testCasesArray && !testCasesError;
+  const error = resultsError || testCasesError;
 
   if (isLoading) {
     return <div className="text-sm text-white/40">Loading results...</div>;
   }
 
   if (error) {
-    return <div className="text-sm text-red-400">Error: {error}</div>;
+    return <div className="text-sm text-red-400">Error: {error.message}</div>;
   }
 
   // Group results by model
-  const resultsByModel = results.reduce(
+  const resultsByModel = (results || []).reduce(
     (acc, result) => {
       if (!acc[result.modelId]) {
         acc[result.modelId] = [];
@@ -110,8 +92,6 @@ export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
     },
     {} as Record<string, ExperimentResult[]>
   );
-
-  console.log("Results grouped by model:", resultsByModel);
 
   // Calculate average scores for each model
   const modelAverages = Object.entries(resultsByModel)
@@ -178,8 +158,6 @@ export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
       return averages;
     })
     .filter(Boolean);
-
-  console.log("Calculated model averages:", modelAverages);
 
   return (
     <ScrollArea className="h-[600px]">

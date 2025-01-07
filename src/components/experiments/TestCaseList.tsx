@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
+import useSWR from "swr";
 
 interface TestCase {
   id: string;
@@ -26,37 +26,32 @@ interface TestCaseListProps {
   experimentId: string;
 }
 
+const fetcher = (url: string) =>
+  fetch(url).then(res => {
+    if (!res.ok) throw new Error("Failed to fetch test cases");
+    return res.json();
+  });
+
 export function TestCaseList({ experimentId }: TestCaseListProps) {
-  const [testCases, setTestCases] = useState<TestCase[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const {
+    data: testCases,
+    error,
+    isLoading,
+  } = useSWR<TestCase[]>(
+    `${baseUrl}/api/experiments/${experimentId}/test-cases`,
+    fetcher
+  );
 
-  useEffect(() => {
-    async function fetchTestCases() {
-      try {
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-        const res = await fetch(
-          `${baseUrl}/api/experiments/${experimentId}/test-cases`
-        );
-        if (!res.ok) throw new Error("Failed to fetch test cases");
-        const data = await res.json();
-        console.log("Fetched test cases:", JSON.stringify(data, null, 2));
-        setTestCases(data);
-      } catch (error) {
-        console.error("Error fetching test cases:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchTestCases();
-  }, [experimentId]);
+  if (error) {
+    return <div className="text-sm text-red-400">Error loading test cases</div>;
+  }
 
   if (isLoading) {
     return <div className="text-sm text-white/40">Loading test cases...</div>;
   }
 
-  if (testCases.length === 0) {
+  if (!testCases?.length) {
     return <div className="text-sm text-white/40">No test cases yet</div>;
   }
 
