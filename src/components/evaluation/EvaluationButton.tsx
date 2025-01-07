@@ -1,35 +1,108 @@
 "use client";
 
-import { Play, Loader2 } from "lucide-react";
+import { Play, Loader2, AlertCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface EvaluationButtonProps {
   isLoading: boolean;
+  userMessage?: string;
+  expectedOutput?: string;
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export function EvaluationButton({
   isLoading,
+  userMessage,
+  expectedOutput,
   onClick,
 }: EvaluationButtonProps) {
+  console.log("Button Props:", {
+    userMessage,
+    expectedOutput,
+    isLoading,
+    messageEmpty: !userMessage?.trim(),
+    outputEmpty: !expectedOutput?.trim(),
+  });
+
+  const getTooltipMessage = () => {
+    if (!userMessage?.trim() && !expectedOutput?.trim()) {
+      return "Please enter both user message and expected output";
+    }
+    if (!userMessage?.trim()) {
+      return "Please enter a user message";
+    }
+    if (!expectedOutput?.trim()) {
+      return "Please enter expected output";
+    }
+    return "";
+  };
+
+  const isDisabled =
+    !userMessage?.trim() || !expectedOutput?.trim() || isLoading;
+
+  console.log("Button State:", {
+    isDisabled,
+    validationMessage: getTooltipMessage(),
+  });
+
   return (
     <div className="pt-4">
-      <button
-        type="submit"
-        onClick={onClick}
-        disabled={isLoading}
-        className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-2xl text-base font-semibold text-white/90 bg-gradient-to-r from-blue-600/70 to-blue-700/90 backdrop-blur-sm shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:text-white hover:-translate-y-0.5 hover:from-blue-500 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:hover:shadow-blue-500/20 relative before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-r before:from-white/5 before:to-transparent before:pointer-events-none"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Evaluating...</span>
-          </>
-        ) : (
-          <>
-            <span>Evaluate</span>
-          </>
-        )}
-      </button>
+      <TooltipProvider>
+        <Tooltip delayDuration={100}>
+          <TooltipTrigger asChild>
+            <div className="w-full" role="button" tabIndex={-1}>
+              <button
+                type="button"
+                onClick={onClick}
+                disabled={isDisabled}
+                className={`
+                  w-full flex items-center justify-center gap-3 py-3.5 px-8 
+                  rounded-2xl text-base font-medium text-white/95
+                  bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 
+                  bg-[length:200%_100%] bg-[position:0%] hover:bg-[position:100%]
+                  shadow-lg shadow-blue-500/20 
+                  hover:shadow-blue-500/30 hover:text-white 
+                  focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 
+                  active:scale-[0.98] 
+                  disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:shadow-none
+                  transition-all duration-500 ease-out
+                  relative overflow-hidden
+                  before:absolute before:inset-0 
+                  before:bg-gradient-to-r before:from-white/10 before:via-white/5 before:to-transparent 
+                  before:rounded-2xl before:pointer-events-none
+                  ${isLoading ? "animate-pulse" : ""}
+                `}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin opacity-90" />
+                    <span className="inline-block animate-pulse">
+                      Evaluating...
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {isDisabled && (
+                      <AlertCircle className="h-5 w-5 opacity-90" />
+                    )}
+                    <span>Evaluate</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </TooltipTrigger>
+          {isDisabled && !isLoading && (
+            <TooltipContent>
+              <p>{getTooltipMessage()}</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }

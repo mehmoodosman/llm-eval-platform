@@ -68,7 +68,12 @@ export function EvaluationForm({ onSubmit }: EvaluationFormProps) {
         onToggleMetric={toggleMetric}
       />
 
-      <EvaluationButton isLoading={isLoading} onClick={handleSubmit} />
+      <EvaluationButton
+        isLoading={isLoading}
+        onClick={handleSubmit}
+        userMessage={userMessage}
+        expectedOutput={expectedOutput}
+      />
 
       <ResponseList responses={responses} isStreaming={isStreaming} />
     </form>
