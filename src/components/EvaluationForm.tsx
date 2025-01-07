@@ -2,13 +2,16 @@
 
 import { useEvaluationStore } from "@/stores/evaluation-store";
 import { TextAreaField } from "./evaluation/TextAreaField";
-import { ModelSelector } from "./evaluation/ModelSelector";
 import { ResponseList } from "./evaluation/ResponseList";
 import { EvaluationButton } from "./evaluation/EvaluationButton";
 import { MetricsSelector } from "./evaluation/MetricsSelector";
 import { useEvaluationStream } from "@/hooks/useEvaluationStream";
 
-export function EvaluationForm() {
+interface EvaluationFormProps {
+  onSubmit: () => Promise<void>;
+}
+
+export function EvaluationForm({ onSubmit }: EvaluationFormProps) {
   const {
     systemPrompt,
     userMessage,
@@ -19,32 +22,33 @@ export function EvaluationForm() {
     setSystemPrompt,
     setUserMessage,
     setExpectedOutput,
-    toggleModel,
     toggleMetric,
   } = useEvaluationStore();
 
-  const { isStreaming, handleSubmit, responses } = useEvaluationStream();
+  const {
+    isStreaming,
+    responses,
+    handleSubmit: handleEvaluationSubmit,
+  } = useEvaluationStream();
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleSubmit({
-      systemPrompt,
-      userMessage,
-      expectedOutput,
-      selectedModels,
-      selectedMetrics,
-    });
+    try {
+      await handleEvaluationSubmit({
+        systemPrompt,
+        userMessage,
+        expectedOutput,
+        selectedModels,
+        selectedMetrics,
+      });
+      await onSubmit();
+    } catch (error) {
+      console.error("Error during evaluation:", error);
+    }
   };
 
   return (
-    <form onSubmit={onSubmit} className="w-full space-y-6">
-      <TextAreaField
-        label="System Prompt"
-        value={systemPrompt}
-        onChange={setSystemPrompt}
-        placeholder="Enter system prompt..."
-      />
-
+    <form onSubmit={handleSubmit} className="w-full space-y-6">
       <TextAreaField
         label="User Message"
         value={userMessage}
@@ -59,17 +63,12 @@ export function EvaluationForm() {
         placeholder="Enter expected output..."
       />
 
-      <ModelSelector
-        selectedModels={selectedModels}
-        onToggleModel={toggleModel}
-      />
-
       <MetricsSelector
         selectedMetrics={selectedMetrics}
         onToggleMetric={toggleMetric}
       />
 
-      <EvaluationButton isLoading={isLoading} onClick={onSubmit} />
+      <EvaluationButton isLoading={isLoading} onClick={handleSubmit} />
 
       <ResponseList responses={responses} isStreaming={isStreaming} />
     </form>

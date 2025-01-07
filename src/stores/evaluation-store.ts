@@ -27,61 +27,66 @@ interface EvaluationStore {
   selectedMetrics: EvaluationMetric[];
   responses: Response[];
   isLoading: boolean;
+  experimentId?: string;
   setSystemPrompt: (prompt: string) => void;
   setUserMessage: (message: string) => void;
   setExpectedOutput: (output: string) => void;
-  toggleModel: (value: string) => void;
+  setSelectedModels: (models: string[]) => void;
   toggleMetric: (value: EvaluationMetric) => void;
   setResponses: (responses: Response[]) => void;
   setIsLoading: (isLoading: boolean) => void;
+  setExperimentId: (id: string) => void;
+  saveTestCase: () => Promise<void>;
 }
 
 type EvaluationStoreCreator = StateCreator<EvaluationStore>;
 
-export const useEvaluationStore = create<EvaluationStore>(
-  (set: Parameters<EvaluationStoreCreator>[0]) => ({
-    systemPrompt: "You are a helpful assistant.",
-    userMessage: "What is the french revolution in 3 sentences?",
-    expectedOutput:
-      "The French Revolution, which began in 1789, was a period of radical social and political change in France that marked the decline of absolute monarchy and the rise of democracy. Fueled by Enlightenment ideas, economic hardship, and social inequality, the revolution led to the overthrow of King Louis XVI, the establishment of the First French Republic, and significant changes in the rights of citizens. It also inspired revolutionary movements worldwide, though it was marked by periods of violence, including the Reign of Terror, and ultimately set the stage for the rise of Napoleon Bonaparte.",
-    selectedModels: ["gpt-4o-mini", "gpt-3.5-turbo"],
-    selectedMetrics: [
-      EvaluationMetric.EXACT_MATCH,
-      EvaluationMetric.COSINE_SIMILARITY,
-      EvaluationMetric.LLM_JUDGE,
-    ],
-    responses: [],
-    isLoading: false,
-    setSystemPrompt: (prompt: string) => set({ systemPrompt: prompt }),
-    setUserMessage: (message: string) => set({ userMessage: message }),
-    setExpectedOutput: (output: string) => set({ expectedOutput: output }),
-    toggleModel: (value: string) =>
-      set((state: EvaluationStore) => {
-        const isSelected = state.selectedModels.includes(value);
-        if (isSelected) {
-          // Don't remove if it's the last selected model
-          if (state.selectedModels.length === 1) return state;
-          return {
-            selectedModels: state.selectedModels.filter(
-              (v: string) => v !== value
-            ),
-          };
-        }
-        return { selectedModels: [...state.selectedModels, value] };
+export const useEvaluationStore = create<EvaluationStore>((set, get) => ({
+  systemPrompt: "You are a helpful assistant.",
+  userMessage: "",
+  expectedOutput: "",
+  selectedModels: ["gpt-4o-mini", "gpt-3.5-turbo"],
+  selectedMetrics: [
+    EvaluationMetric.EXACT_MATCH,
+    EvaluationMetric.COSINE_SIMILARITY,
+    EvaluationMetric.LLM_JUDGE,
+  ],
+  responses: [],
+  isLoading: false,
+  setSystemPrompt: (prompt: string) => set({ systemPrompt: prompt }),
+  setUserMessage: (message: string) => set({ userMessage: message }),
+  setExpectedOutput: (output: string) => set({ expectedOutput: output }),
+  setSelectedModels: (models: string[]) => set({ selectedModels: models }),
+  toggleMetric: (value: EvaluationMetric) =>
+    set((state: EvaluationStore) => {
+      const isSelected = state.selectedMetrics.includes(value);
+      if (isSelected) {
+        // Don't remove if it's the last selected metric
+        if (state.selectedMetrics.length === 1) return state;
+        return {
+          selectedMetrics: state.selectedMetrics.filter(v => v !== value),
+        };
+      }
+      return { selectedMetrics: [...state.selectedMetrics, value] };
+    }),
+  setResponses: (responses: Response[]) => set({ responses }),
+  setIsLoading: (isLoading: boolean) => set({ isLoading }),
+  setExperimentId: (id: string) => set({ experimentId: id }),
+  saveTestCase: async () => {
+    const state = get();
+    if (!state.experimentId) return;
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    await fetch(`${baseUrl}/api/experiments/${state.experimentId}/test-cases`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userMessage: state.userMessage,
+        expectedOutput: state.expectedOutput,
+        responses: state.responses,
       }),
-    toggleMetric: (value: EvaluationMetric) =>
-      set((state: EvaluationStore) => {
-        const isSelected = state.selectedMetrics.includes(value);
-        if (isSelected) {
-          // Don't remove if it's the last selected metric
-          if (state.selectedMetrics.length === 1) return state;
-          return {
-            selectedMetrics: state.selectedMetrics.filter(v => v !== value),
-          };
-        }
-        return { selectedMetrics: [...state.selectedMetrics, value] };
-      }),
-    setResponses: (responses: Response[]) => set({ responses }),
-    setIsLoading: (isLoading: boolean) => set({ isLoading }),
-  })
-);
+    });
+  },
+}));

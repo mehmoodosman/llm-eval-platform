@@ -10,6 +10,7 @@ import { EvaluationMetric } from "@/types/evaluation";
 const createResultSchema = z.object({
   experimentId: z.string(),
   testCaseId: z.string(),
+  modelId: z.string(),
   response: z.string(),
   exactMatchScore: z.string().optional(),
   llmMatchScore: z.string().optional(),

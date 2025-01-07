@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ModelSelector } from "@/components/evaluation/ModelSelector";
+import { ALL_MODELS } from "@/lib/models";
 
 interface CreateExperimentFormProps {
   onSuccess?: (experiment: any) => void;
@@ -31,6 +32,11 @@ export function CreateExperimentForm({ onSuccess }: CreateExperimentFormProps) {
     setIsLoading(true);
 
     try {
+      // Convert model values to model IDs
+      const modelIds = selectedModels
+        .map(value => ALL_MODELS.find(m => m.value === value)?.id)
+        .filter(Boolean) as string[];
+
       const response = await fetch("/api/experiments", {
         method: "POST",
         headers: {
@@ -39,7 +45,7 @@ export function CreateExperimentForm({ onSuccess }: CreateExperimentFormProps) {
         body: JSON.stringify({
           name,
           systemPrompt,
-          model: selectedModels[0],
+          modelIds,
         }),
       });
 

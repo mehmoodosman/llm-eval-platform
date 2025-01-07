@@ -1,17 +1,19 @@
 import { db } from ".";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import {
   experiments,
   testCases,
   experimentTestCases,
   experimentResults,
+  models,
+  experimentModels,
 } from "./schema";
 import { EvaluationMetric } from "@/types/evaluation";
 
 export type CreateExperimentInput = {
   name: string;
   systemPrompt: string;
-  model: string;
+  modelIds: string[];
   testCaseIds?: string[];
 };
 
@@ -34,12 +36,29 @@ export type CreateExperimentResultInput = {
 
 // Experiment Operations
 export async function createExperiment(input: CreateExperimentInput) {
-  const experiment = await db.insert(experiments).values(input).returning();
+  const { modelIds, ...experimentData } = input;
 
+  const experiment = await db
+    .insert(experiments)
+    .values(experimentData)
+    .returning();
+  const experimentId = experiment[0].id;
+
+  // Create experiment-model relationships
+  if (modelIds?.length) {
+    await db.insert(experimentModels).values(
+      modelIds.map(modelId => ({
+        experimentId,
+        modelId,
+      }))
+    );
+  }
+
+  // Create experiment-testcase relationships
   if (input.testCaseIds?.length) {
     await db.insert(experimentTestCases).values(
       input.testCaseIds.map(testCaseId => ({
-        experimentId: experiment[0].id,
+        experimentId,
         testCaseId,
       }))
     );
@@ -50,9 +69,31 @@ export async function createExperiment(input: CreateExperimentInput) {
 
 export async function getExperiment(id: string) {
   const result = await db
-    .select()
+    .select({
+      experiment: experiments,
+      models: sql<any>`
+        COALESCE(
+          JSONB_AGG(
+            JSONB_BUILD_OBJECT(
+              'id', ${models.id},
+              'value', ${models.value},
+              'label', ${models.label},
+              'category', ${models.category}
+            )
+          ) FILTER (WHERE ${models.id} IS NOT NULL),
+          '[]'::JSONB
+        )
+      `,
+    })
     .from(experiments)
-    .where(eq(experiments.id, id));
+    .leftJoin(
+      experimentModels,
+      eq(experiments.id, experimentModels.experimentId)
+    )
+    .leftJoin(models, eq(experimentModels.modelId, models.id))
+    .where(eq(experiments.id, id))
+    .groupBy(experiments.id);
+
   return result[0];
 }
 
@@ -87,18 +128,48 @@ export async function getTestCase(id: string) {
 export async function getTestCasesForExperiment(experimentId: string) {
   const result = await db
     .select({
-      testCase: testCases,
+      id: testCases.id,
+      userMessage: testCases.userMessage,
+      expectedOutput: testCases.expectedOutput,
+      metrics: testCases.metrics,
+      createdAt: testCases.createdAt,
+      results: sql<any>`
+        COALESCE(
+          JSONB_AGG(
+            CASE WHEN ${experimentResults.id} IS NOT NULL THEN
+              JSONB_BUILD_OBJECT(
+                'id', ${experimentResults.id},
+                'response', ${experimentResults.response},
+                'exactMatchScore', ${experimentResults.exactMatchScore},
+                'llmMatchScore', ${experimentResults.llmMatchScore},
+                'cosineSimilarityScore', ${experimentResults.cosineSimilarityScore},
+                'metrics', ${experimentResults.metrics},
+                'error', ${experimentResults.error}
+              )
+            END
+          ) FILTER (WHERE ${experimentResults.id} IS NOT NULL),
+          '[]'::JSONB
+        )
+      `,
     })
     .from(experimentTestCases)
     .innerJoin(testCases, eq(experimentTestCases.testCaseId, testCases.id))
-    .where(eq(experimentTestCases.experimentId, experimentId));
+    .leftJoin(
+      experimentResults,
+      and(
+        eq(experimentResults.testCaseId, testCases.id),
+        eq(experimentResults.experimentId, experimentId)
+      )
+    )
+    .where(eq(experimentTestCases.experimentId, experimentId))
+    .groupBy(testCases.id);
 
-  return result.map(r => r.testCase);
+  return result;
 }
 
 // Experiment Results Operations
 export async function createExperimentResult(
-  input: CreateExperimentResultInput
+  input: CreateExperimentResultInput & { modelId: string }
 ) {
   console.log(
     "Creating experiment result with input:",
@@ -108,6 +179,7 @@ export async function createExperimentResult(
   // Create a clean object with ONLY the values we want to insert, matching schema exactly
   const dbValues = {
     experimentId: input.experimentId,
+    modelId: input.modelId,
     testCaseId: input.testCaseId,
     response: input.response,
     metrics: input.metrics,
@@ -118,17 +190,17 @@ export async function createExperimentResult(
   } satisfies typeof experimentResults.$inferInsert;
 
   // Validate required fields
-  if (!dbValues.experimentId || !dbValues.testCaseId) {
+  if (!dbValues.experimentId || !dbValues.testCaseId || !dbValues.modelId) {
     console.error("Missing required fields:", {
       experimentId: dbValues.experimentId,
       testCaseId: dbValues.testCaseId,
+      modelId: dbValues.modelId,
     });
-    throw new Error("experimentId and testCaseId are required");
+    throw new Error("experimentId, testCaseId, and modelId are required");
   }
 
   console.log("Inserting values:", JSON.stringify(dbValues, null, 2));
 
-  // Insert ONLY our clean dbValues object
   const result = await db
     .insert(experimentResults)
     .values(dbValues)
@@ -161,4 +233,80 @@ export async function getTestCaseResults(
     );
 
   return results[0];
+}
+
+export async function listExperiments() {
+  const result = await db
+    .select({
+      id: experiments.id,
+      name: experiments.name,
+      systemPrompt: experiments.systemPrompt,
+      createdAt: experiments.createdAt,
+      updatedAt: experiments.updatedAt,
+      models: sql<any>`
+        COALESCE(
+          JSONB_AGG(
+            JSONB_BUILD_OBJECT(
+              'id', ${models.id},
+              'value', ${models.value},
+              'label', ${models.label},
+              'category', ${models.category}
+            )
+          ) FILTER (WHERE ${models.id} IS NOT NULL),
+          '[]'::JSONB
+        )
+      `,
+      testCaseCount: sql<number>`
+        CAST((
+          SELECT COUNT(*)
+          FROM ${experimentTestCases}
+          WHERE ${experimentTestCases.experimentId} = ${experiments.id}
+        ) AS integer)
+      `,
+    })
+    .from(experiments)
+    .leftJoin(
+      experimentModels,
+      eq(experiments.id, experimentModels.experimentId)
+    )
+    .leftJoin(models, eq(experimentModels.modelId, models.id))
+    .groupBy(experiments.id)
+    .orderBy(desc(experiments.createdAt));
+
+  return result;
+}
+
+// Model Operations
+export async function listModels() {
+  return db.select().from(models).orderBy(models.category, models.label);
+}
+
+export async function seedModels() {
+  const modelData = [
+    { value: "gpt-4o", label: "GPT-4o", category: "OpenAI" },
+    { value: "gpt-4o-mini", label: "GPT-4o-mini", category: "OpenAI" },
+    { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", category: "OpenAI" },
+    {
+      value: "gemini-2.0-flash-exp",
+      label: "Gemini 2.0 Flash",
+      category: "Google",
+    },
+    {
+      value: "gemini-1.5-flash",
+      label: "Gemini 1.5 Flash",
+      category: "Google",
+    },
+    {
+      value: "llama-3.1-8b-instant",
+      label: "LLaMA 3.1 8B Instant",
+      category: "Meta",
+    },
+    {
+      value: "llama-3.3-70b-versatile",
+      label: "LLaMA 3.3 70B Versatile",
+      category: "Meta",
+    },
+  ];
+
+  await db.insert(models).values(modelData).onConflictDoNothing();
 }

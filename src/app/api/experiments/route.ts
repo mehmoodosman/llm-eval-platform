@@ -3,13 +3,14 @@ import {
   createExperiment,
   getExperiment,
   getExperimentWithTestCases,
+  listExperiments,
 } from "@/db/operations";
 import { z } from "zod";
 
 const createExperimentSchema = z.object({
   name: z.string(),
   systemPrompt: z.string(),
-  model: z.string(),
+  modelIds: z.array(z.string()),
   testCaseIds: z.array(z.string()).optional(),
 });
 
@@ -35,29 +36,29 @@ export async function GET(request: Request) {
     const id = searchParams.get("id");
     const includeTestCases = searchParams.get("includeTestCases") === "true";
 
-    if (!id) {
-      return NextResponse.json(
-        { error: "Experiment ID is required" },
-        { status: 400 }
-      );
+    // If id is provided, get a single experiment
+    if (id) {
+      const experiment = includeTestCases
+        ? await getExperimentWithTestCases(id)
+        : await getExperiment(id);
+
+      if (!experiment) {
+        return NextResponse.json(
+          { error: "Experiment not found" },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(experiment);
     }
 
-    const experiment = includeTestCases
-      ? await getExperimentWithTestCases(id)
-      : await getExperiment(id);
-
-    if (!experiment) {
-      return NextResponse.json(
-        { error: "Experiment not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(experiment);
+    // Otherwise, list all experiments
+    const experiments = await listExperiments();
+    return NextResponse.json(experiments);
   } catch (error) {
-    console.error("Error fetching experiment:", error);
+    console.error("Error fetching experiments:", error);
     return NextResponse.json(
-      { error: "Failed to fetch experiment" },
+      { error: "Failed to fetch experiments" },
       { status: 500 }
     );
   }
