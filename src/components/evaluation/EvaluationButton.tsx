@@ -21,14 +21,6 @@ export function EvaluationButton({
   expectedOutput,
   onClick,
 }: EvaluationButtonProps) {
-  console.log("Button Props:", {
-    userMessage,
-    expectedOutput,
-    isLoading,
-    messageEmpty: !userMessage?.trim(),
-    outputEmpty: !expectedOutput?.trim(),
-  });
-
   const getTooltipMessage = () => {
     if (!userMessage?.trim() && !expectedOutput?.trim()) {
       return "Please enter both user message and expected output";
@@ -44,11 +36,6 @@ export function EvaluationButton({
 
   const isDisabled =
     !userMessage?.trim() || !expectedOutput?.trim() || isLoading;
-
-  console.log("Button State:", {
-    isDisabled,
-    validationMessage: getTooltipMessage(),
-  });
 
   return (
     <div className="pt-4">

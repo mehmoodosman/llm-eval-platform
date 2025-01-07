@@ -8,49 +8,16 @@ import {
   models,
   experimentModels,
 } from "./schema";
-import { EvaluationMetric } from "@/types/evaluation";
+import { Logger } from "@/utils/logger";
+import {
+  ModelAggregation,
+  ExperimentResultAggregation,
+  CreateExperimentInput,
+  CreateTestCaseInput,
+  CreateExperimentResultInput,
+} from "./types";
 
-// Type definitions for SQL results
-type ModelAggregation = {
-  id: string;
-  value: string;
-  label: string;
-  category: string;
-};
-
-type ExperimentResultAggregation = {
-  id: string;
-  response: string;
-  exactMatchScore: string | null;
-  llmMatchScore: string | null;
-  cosineSimilarityScore: string | null;
-  metrics: Record<EvaluationMetric, number> | null;
-  error: string | null;
-};
-
-export type CreateExperimentInput = {
-  name: string;
-  systemPrompt: string;
-  modelIds: string[];
-  testCaseIds?: string[];
-};
-
-export type CreateTestCaseInput = {
-  userMessage: string;
-  expectedOutput: string;
-  metrics: EvaluationMetric[];
-};
-
-export type CreateExperimentResultInput = {
-  experimentId: string;
-  testCaseId: string;
-  response: string;
-  exactMatchScore?: string;
-  llmMatchScore?: string;
-  cosineSimilarityScore?: string;
-  metrics?: Record<EvaluationMetric, number>;
-  error?: string;
-};
+const logger = new Logger("db:operations");
 
 // Experiment Operations
 export async function createExperiment(input: CreateExperimentInput) {
@@ -189,78 +156,104 @@ export async function getTestCasesForExperiment(experimentId: string) {
 export async function createExperimentResult(
   input: CreateExperimentResultInput & { modelId: string }
 ) {
-  console.log(
-    "Creating experiment result with input:",
-    JSON.stringify(input, null, 2)
-  );
+  try {
+    logger.debug("Creating experiment result", { input });
 
-  // Create a clean object with ONLY the values we want to insert, matching schema exactly
-  const dbValues = {
-    experimentId: input.experimentId,
-    modelId: input.modelId,
-    testCaseId: input.testCaseId,
-    response: input.response,
-    metrics: input.metrics,
-    error: input.error,
-    exactMatchScore: input.exactMatchScore,
-    llmMatchScore: input.llmMatchScore,
-    cosineSimilarityScore: input.cosineSimilarityScore,
-  } satisfies typeof experimentResults.$inferInsert;
+    // Create a clean object with ONLY the values we want to insert, matching schema exactly
+    const dbValues = {
+      experimentId: input.experimentId,
+      modelId: input.modelId,
+      testCaseId: input.testCaseId,
+      response: input.response,
+      metrics: input.metrics,
+      error: input.error,
+      exactMatchScore: input.exactMatchScore,
+      llmMatchScore: input.llmMatchScore,
+      cosineSimilarityScore: input.cosineSimilarityScore,
+    } satisfies typeof experimentResults.$inferInsert;
 
-  // Validate required fields
-  if (!dbValues.experimentId || !dbValues.testCaseId || !dbValues.modelId) {
-    console.error("Missing required fields:", {
+    // Validate required fields
+    const requiredFields = {
       experimentId: dbValues.experimentId,
       testCaseId: dbValues.testCaseId,
       modelId: dbValues.modelId,
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([, value]) => !value)
+      .map(([key]) => key);
+
+    if (missingFields.length > 0) {
+      const error = new Error(
+        `Missing required fields: ${missingFields.join(", ")}`
+      );
+      logger.error("Validation failed for experiment result", error, {
+        requiredFields,
+      });
+      throw error;
+    }
+
+    logger.debug("Inserting experiment result", { dbValues });
+    const result = await db
+      .insert(experimentResults)
+      .values(dbValues)
+      .returning();
+
+    logger.info("Successfully created experiment result", {
+      experimentId: result[0].id,
+      modelId: result[0].modelId,
+      testCaseId: result[0].testCaseId,
     });
-    throw new Error("experimentId, testCaseId, and modelId are required");
+
+    return result[0];
+  } catch (error) {
+    logger.error("Failed to create experiment result", error);
+    throw error;
   }
-
-  console.log("Inserting values:", JSON.stringify(dbValues, null, 2));
-
-  const result = await db
-    .insert(experimentResults)
-    .values(dbValues)
-    .returning();
-  console.log("Database insert result:", JSON.stringify(result, null, 2));
-  return result[0];
 }
 
 export async function getExperimentResults(experimentId: string) {
-  console.log("Getting experiment results for:", experimentId);
+  try {
+    logger.debug("Fetching experiment results", { experimentId });
 
-  const query = db
-    .select({
-      id: experimentResults.id,
-      experimentId: experimentResults.experimentId,
-      modelId: experimentResults.modelId,
-      testCaseId: experimentResults.testCaseId,
-      response: experimentResults.response,
-      exactMatchScore: experimentResults.exactMatchScore,
-      llmMatchScore: experimentResults.llmMatchScore,
-      cosineSimilarityScore: experimentResults.cosineSimilarityScore,
-      metrics: experimentResults.metrics,
-      error: experimentResults.error,
-      model: sql<ModelAggregation>`
-        JSONB_BUILD_OBJECT(
-          'id', ${models.id},
-          'value', ${models.value},
-          'label', ${models.label},
-          'category', ${models.category}
-        )
-      `,
-    })
-    .from(experimentResults)
-    .leftJoin(models, eq(experimentResults.modelId, models.id))
-    .where(eq(experimentResults.experimentId, experimentId));
+    const query = db
+      .select({
+        id: experimentResults.id,
+        experimentId: experimentResults.experimentId,
+        modelId: experimentResults.modelId,
+        testCaseId: experimentResults.testCaseId,
+        response: experimentResults.response,
+        exactMatchScore: experimentResults.exactMatchScore,
+        llmMatchScore: experimentResults.llmMatchScore,
+        cosineSimilarityScore: experimentResults.cosineSimilarityScore,
+        metrics: experimentResults.metrics,
+        error: experimentResults.error,
+        model: sql<ModelAggregation>`
+          JSONB_BUILD_OBJECT(
+            'id', ${models.id},
+            'value', ${models.value},
+            'label', ${models.label},
+            'category', ${models.category}
+          )
+        `,
+      })
+      .from(experimentResults)
+      .leftJoin(models, eq(experimentResults.modelId, models.id))
+      .where(eq(experimentResults.experimentId, experimentId));
 
-  console.log("Generated SQL query:", query.toSQL());
+    logger.debug("Executing query", { sql: query.toSQL() });
+    const results = await query;
 
-  const results = await query;
-  console.log("Query results:", results);
+    logger.info("Successfully fetched experiment results", {
+      experimentId,
+      resultCount: results.length,
+    });
 
-  return results;
+    return results;
+  } catch (error) {
+    logger.error("Failed to fetch experiment results", error, { experimentId });
+    throw error;
+  }
 }
 
 export async function getTestCaseResults(

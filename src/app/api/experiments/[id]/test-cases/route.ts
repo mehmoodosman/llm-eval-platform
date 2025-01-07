@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { experiments, testCases, experimentTestCases } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { EvaluationMetric } from "@/types/evaluation";
 import { getTestCasesForExperiment } from "@/db/operations";
 
 export async function GET(

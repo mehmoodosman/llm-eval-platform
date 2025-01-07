@@ -27,7 +27,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
 
     try {
       const data: StreamUpdate = JSON.parse(line.slice(5));
-      console.log("Processing stream line:", {
+      logger.info("Processing stream line", {
         model: data.model,
         metrics: data.metrics,
       });
@@ -47,7 +47,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
         response: data.response ?? currentState.response,
         metrics: data.metrics,
       };
-      console.log("Updated response state:", {
+      logger.info("Updated response state", {
         model: data.model,
         state: updatedState,
       });
@@ -111,7 +111,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
     experimentId: string,
     testCaseId: string
   ) => {
-    console.log("Attempting to save results:", {
+    logger.info("Attempting to save results", {
       responses,
       experimentId,
       testCaseId,
@@ -122,10 +122,10 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
         responses.map(async response => {
           // Convert model value to UUID
           const modelId = ALL_MODELS.find(m => m.value === response.model)?.id;
-          console.log("Found model ID:", { model: response.model, modelId });
+          logger.info("Found model ID", { model: response.model, modelId });
 
           if (!modelId) {
-            console.error("Model not found:", response.model);
+            logger.error("Model not found", { model: response.model });
             throw new Error(`Could not find model ID for ${response.model}`);
           }
 
@@ -144,7 +144,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
             cosineSimilarityScore:
               response.metrics?.evaluation?.COSINE_SIMILARITY?.toString(),
           };
-          console.log("Prepared result for saving:", result);
+          logger.info("Prepared result for saving", result);
 
           const res = await fetch("/api/experiment-results", {
             method: "POST",
@@ -154,7 +154,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
 
           if (!res.ok) {
             const errorText = await res.text();
-            console.error("Failed to save result:", {
+            logger.error("Failed to save result", {
               status: res.status,
               error: errorText,
               result,
@@ -165,11 +165,11 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
           }
 
           const savedResult = await res.json();
-          console.log("Successfully saved result:", savedResult);
+          logger.info("Successfully saved result", savedResult);
         })
       );
     } catch (error) {
-      console.error("Error in saveResults:", error);
+      logger.error("Error in saveResults", error);
       throw error;
     }
   };
@@ -184,7 +184,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
       }
 
       // Create test case first
-      console.log("Creating test case with:", {
+      logger.info("Creating test case", {
         userMessage: request.userMessage,
         expectedOutput: request.expectedOutput,
         metrics: request.selectedMetrics,
@@ -202,12 +202,12 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
 
       if (!testCaseResponse.ok) {
         const error = await testCaseResponse.text();
-        console.error("Failed to create test case:", error);
+        logger.error("Failed to create test case", error);
         throw new Error("Failed to create test case");
       }
 
       const testCase = await testCaseResponse.json();
-      console.log("Created test case:", testCase);
+      logger.info("Created test case", testCase);
       setTestCaseId(testCase.id);
 
       // Link test case to existing experiment
@@ -224,13 +224,13 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
 
       if (!linkResponse.ok) {
         const error = await linkResponse.text();
-        console.error("Failed to link test case to experiment:", error);
+        logger.error("Failed to link test case to experiment", error);
         throw new Error("Failed to link test case to experiment");
       }
 
       return { experimentId: currentExperimentId, testCaseId: testCase.id };
     } catch (error) {
-      logger.error("Error creating test case:", error);
+      logger.error("Error creating test case", error);
       throw error;
     }
   };
@@ -245,7 +245,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
       // First create the experiment and test case
       const { experimentId, testCaseId } =
         await createExperimentAndTestCase(request);
-      console.log("Created experiment and test case:", {
+      logger.info("Created experiment and test case", {
         experimentId,
         testCaseId,
       });
@@ -257,21 +257,21 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
         request.selectedModels
       );
 
-      console.log("Stream data handled, final responses:", finalResponses);
+      logger.info("Stream data handled", { finalResponses });
 
       // After streaming is complete, save the results
       if (finalResponses.length > 0) {
-        console.log("Calling saveResults with:", {
+        logger.info("Calling saveResults", {
           responses: finalResponses,
           experimentId,
           testCaseId,
         });
         await saveResults(finalResponses, experimentId, testCaseId);
       } else {
-        console.log("No responses to save");
+        logger.info("No responses to save");
       }
     } catch (error) {
-      console.error("Evaluation error:", error);
+      logger.error("Evaluation error", error);
       setResponses([
         {
           model: "error",

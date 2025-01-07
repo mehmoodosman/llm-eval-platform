@@ -6,6 +6,9 @@ import {
 } from "@/db/operations";
 import { z } from "zod";
 import { EvaluationMetric } from "@/types/evaluation";
+import { Logger } from "@/utils/logger";
+
+const logger = new Logger("ExperimentResultsAPI");
 
 const createResultSchema = z.object({
   experimentId: z.string(),
@@ -22,14 +25,11 @@ const createResultSchema = z.object({
 export async function POST(request: Request) {
   try {
     const json = await request.json();
-    console.log(
-      "Received experiment result POST:",
-      JSON.stringify(json, null, 2)
-    );
+    logger.info("Received experiment result POST:", json);
 
     // Validate required fields before schema validation
     if (!json.experimentId || !json.testCaseId || !json.modelId) {
-      console.error("Missing required fields:", {
+      logger.error("Missing required fields:", null, {
         experimentId: json.experimentId,
         testCaseId: json.testCaseId,
         modelId: json.modelId,
@@ -40,9 +40,9 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log("Validating with schema:", json);
+    logger.debug("Validating with schema:", json);
     const body = createResultSchema.parse(json);
-    console.log("Schema validation passed:", JSON.stringify(body, null, 2));
+    logger.info("Schema validation passed:", body);
 
     const transformedData = {
       ...body,
@@ -55,20 +55,19 @@ export async function POST(request: Request) {
           ) as Record<EvaluationMetric, number>)
         : undefined,
     };
-    console.log(
-      "Transformed data for DB:",
-      JSON.stringify(transformedData, null, 2)
-    );
+    logger.debug("Transformed data for DB:", transformedData);
 
-    console.log("Calling createExperimentResult with:", transformedData);
+    logger.debug("Calling createExperimentResult with:", transformedData);
     const result = await createExperimentResult(transformedData);
-    console.log("Created experiment result:", result);
+    logger.info("Created experiment result:", result);
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error creating experiment result:", error);
+    logger.error("Error creating experiment result:", error);
     if (error instanceof z.ZodError) {
-      console.error("Validation error:", error.errors);
+      logger.error("Validation error:", error, {
+        validationErrors: error.errors,
+      });
       return NextResponse.json(
         { error: "Validation failed", details: error.errors },
         { status: 400 }
@@ -87,7 +86,7 @@ export async function GET(request: Request) {
     const experimentId = searchParams.get("experimentId");
     const testCaseId = searchParams.get("testCaseId");
 
-    console.log("Fetching experiment results:", { experimentId, testCaseId });
+    logger.info("Fetching experiment results:", { experimentId, testCaseId });
 
     if (!experimentId) {
       return NextResponse.json(
@@ -98,7 +97,7 @@ export async function GET(request: Request) {
 
     if (testCaseId) {
       const result = await getTestCaseResults(experimentId, testCaseId);
-      console.log("Test case results:", result);
+      logger.info("Test case results:", result);
       if (!result) {
         return NextResponse.json(
           { error: "Result not found" },
@@ -109,10 +108,10 @@ export async function GET(request: Request) {
     }
 
     const results = await getExperimentResults(experimentId);
-    console.log("All experiment results:", results);
+    logger.info("All experiment results:", results);
     return NextResponse.json(results);
   } catch (error) {
-    console.error("Error fetching experiment results:", error);
+    logger.error("Error fetching experiment results:", error);
     return NextResponse.json(
       { error: "Failed to fetch experiment results" },
       { status: 500 }
