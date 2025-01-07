@@ -217,9 +217,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            userMessage: request.userMessage,
-            expectedOutput: request.expectedOutput,
-            responses: [],
+            testCaseId: testCase.id,
           }),
         }
       );

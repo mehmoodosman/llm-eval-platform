@@ -136,9 +136,8 @@ export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
               0
             ) / validMetricResults.length;
 
-          // Convert LLM_JUDGE scores from percentage to decimal
-          averages.metrics[metric] =
-            metric === "LLM_JUDGE" ? rawAverage / 100 : rawAverage;
+          // Remove the division by 100 for LLM_JUDGE since we want to show it as a percentage
+          averages.metrics[metric] = rawAverage;
         }
       });
 

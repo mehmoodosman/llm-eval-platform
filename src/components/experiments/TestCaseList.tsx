@@ -100,8 +100,10 @@ export function TestCaseList({ experimentId }: TestCaseListProps) {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium text-white/80">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5">
-                    <span className="text-xs">#{testCase.id.slice(-4)}</span>
+                  <div className="flex h-7 w-fit min-w-[28px] items-center justify-center rounded-full bg-white/10 px-2 py-1">
+                    <span className="text-sm font-medium text-white/70">
+                      #{testCase.id.slice(-4)}
+                    </span>
                   </div>
                   <span className="text-xs text-white/40">
                     {formatDistanceToNow(new Date(testCase.createdAt), {

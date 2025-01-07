@@ -28,7 +28,14 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const { userMessage, expectedOutput } = await request.json();
+    const { testCaseId } = await request.json();
+
+    if (!testCaseId) {
+      return NextResponse.json(
+        { error: "testCaseId is required" },
+        { status: 400 }
+      );
+    }
 
     const experiment = await db
       .select()
@@ -43,19 +50,19 @@ export async function POST(
       );
     }
 
-    // Create test case
-    const [testCase] = await db
-      .insert(testCases)
-      .values({
-        userMessage,
-        expectedOutput,
-        metrics: [
-          EvaluationMetric.EXACT_MATCH,
-          EvaluationMetric.COSINE_SIMILARITY,
-          EvaluationMetric.LLM_JUDGE,
-        ],
-      })
-      .returning();
+    // Verify test case exists
+    const testCase = await db
+      .select()
+      .from(testCases)
+      .where(eq(testCases.id, testCaseId))
+      .then(rows => rows[0]);
+
+    if (!testCase) {
+      return NextResponse.json(
+        { error: "Test case not found" },
+        { status: 404 }
+      );
+    }
 
     // Link test case to experiment
     await db.insert(experimentTestCases).values({
@@ -65,9 +72,9 @@ export async function POST(
 
     return NextResponse.json(testCase);
   } catch (error) {
-    console.error("Error saving test case:", error);
+    console.error("Error linking test case:", error);
     return NextResponse.json(
-      { error: "Failed to save test case" },
+      { error: "Failed to link test case" },
       { status: 500 }
     );
   }
