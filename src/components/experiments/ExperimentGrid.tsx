@@ -36,15 +36,6 @@ export function ExperimentGrid({ experiments, onDelete }: ExperimentGridProps) {
                 {experiment.name}
               </h3>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-white/40 hover:text-white"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
                   className="w-48 bg-slate-900 border-slate-800"

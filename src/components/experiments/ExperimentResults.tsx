@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import useSWR from "swr";
 
 interface ExperimentResult {
@@ -136,7 +135,6 @@ export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
               0
             ) / validMetricResults.length;
 
-          // Remove the division by 100 for LLM_JUDGE since we want to show it as a percentage
           averages.metrics[metric] = rawAverage;
         }
       });
@@ -162,10 +160,6 @@ export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-white/5 text-white/60">
                     {modelAvg?.model.value}
                   </span>
-                </div>
-                <div className="text-sm text-white/60">
-                  {modelAvg?.successfulTests} / {modelAvg?.totalTests} tests
-                  passed
                 </div>
               </CardTitle>
             </CardHeader>
@@ -198,31 +192,6 @@ export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
                   </div>
                 </div>
               </div>
-
-              {Object.keys(modelAvg?.metrics || {}).length > 0 && (
-                <>
-                  <Separator className="bg-white/5" />
-                  <div>
-                    <div className="text-xs font-medium text-white/60 mb-4">
-                      Additional Metrics
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      {Object.entries(modelAvg?.metrics || {}).map(
-                        ([metric, score]) => (
-                          <div key={metric}>
-                            <div className="text-xs font-medium text-white/60 mb-1">
-                              {metric}
-                            </div>
-                            <div className="text-2xl font-semibold text-white/90">
-                              {(score * 100).toFixed(2)}%
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
         ))}
