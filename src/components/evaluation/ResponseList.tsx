@@ -15,7 +15,7 @@ function ResponseListLoading() {
 
   return (
     <div className="mt-6 space-y-6">
-      {selectedModels.map((model, index) => (
+      {selectedModels.map(model => (
         <div
           key={model}
           className={cn(

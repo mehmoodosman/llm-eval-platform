@@ -51,10 +51,14 @@ export function MetricsBarGraph({ responses }: MetricsBarGraphProps) {
     // Add each model's value for this metric
     validResponses.forEach(response => {
       if (response.metrics?.evaluation) {
-        const value =
+        let value =
           response.metrics.evaluation[
             metric as keyof typeof response.metrics.evaluation
           ] || 0;
+        // If the metric is LLM_JUDGE, normalize it by dividing by 100 since it comes as percentage
+        if (metric === "LLM_JUDGE") {
+          value = value / 100;
+        }
 
         dataPoint[response.model] = value;
       }

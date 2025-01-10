@@ -129,7 +129,13 @@ export async function getTestCasesForExperiment(experimentId: string) {
                 'llmMatchScore', ${experimentResults.llmMatchScore},
                 'cosineSimilarityScore', ${experimentResults.cosineSimilarityScore},
                 'metrics', ${experimentResults.metrics},
-                'error', ${experimentResults.error}
+                'error', ${experimentResults.error},
+                'model', JSONB_BUILD_OBJECT(
+                  'id', ${models.id},
+                  'value', ${models.value},
+                  'label', ${models.label},
+                  'category', ${models.category}
+                )
               )
             END
           ) FILTER (WHERE ${experimentResults.id} IS NOT NULL),
@@ -146,6 +152,7 @@ export async function getTestCasesForExperiment(experimentId: string) {
         eq(experimentResults.experimentId, experimentId)
       )
     )
+    .leftJoin(models, eq(experimentResults.modelId, models.id))
     .where(eq(experimentTestCases.experimentId, experimentId))
     .groupBy(testCases.id);
 

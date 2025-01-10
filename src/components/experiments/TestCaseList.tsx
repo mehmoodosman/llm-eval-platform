@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
-import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import {
   HoverCard,
@@ -11,45 +10,15 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-
-interface TestCase {
-  id: string;
-  userMessage: string;
-  expectedOutput: string;
-  metrics: string[];
-  createdAt: string;
-  results?: {
-    id: string;
-    response: string;
-    exactMatchScore?: string;
-    llmMatchScore?: string;
-    cosineSimilarityScore?: string;
-    metrics?: Record<string, number>;
-    error?: string;
-  }[];
-}
+import { useTestCases } from "@/hooks/useTestCases";
+import { TestCaseResult } from "./TestCaseResult";
 
 interface TestCaseListProps {
   experimentId: string;
 }
 
-const fetcher = (url: string) =>
-  fetch(url).then(res => {
-    if (!res.ok) throw new Error("Failed to fetch test cases");
-    return res.json();
-  });
-
 export function TestCaseList({ experimentId }: TestCaseListProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const {
-    data: testCases,
-    error,
-    isLoading,
-  } = useSWR<TestCase[]>(
-    `${baseUrl}/api/experiments/${experimentId}/test-cases`,
-    fetcher
-  );
+  const { testCases, error, isLoading } = useTestCases(experimentId);
 
   if (error) {
     return (
@@ -167,51 +136,7 @@ export function TestCaseList({ experimentId }: TestCaseListProps) {
                     Results
                   </div>
                   {testCase.results.map(result => (
-                    <div
-                      key={result.id}
-                      className="space-y-4 rounded-lg bg-black/20 p-4"
-                    >
-                      <div className="space-y-2">
-                        <div className="text-xs font-medium text-white/60">
-                          Response
-                        </div>
-                        <div className="rounded-lg bg-black/20 p-3 text-sm text-white/80">
-                          {result.response}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-4">
-                        {result.exactMatchScore && (
-                          <MetricCard
-                            label="Exact Match"
-                            value={parseFloat(result.exactMatchScore)}
-                          />
-                        )}
-                        {result.llmMatchScore && (
-                          <MetricCard
-                            label="LLM Match"
-                            value={parseFloat(result.llmMatchScore)}
-                          />
-                        )}
-                        {result.cosineSimilarityScore && (
-                          <MetricCard
-                            label="Cosine Similarity"
-                            value={parseFloat(result.cosineSimilarityScore)}
-                          />
-                        )}
-                      </div>
-
-                      {result.error && (
-                        <div className="rounded-lg border border-red-500/10 bg-red-500/5 p-4">
-                          <div className="text-xs font-medium text-red-500">
-                            Error
-                          </div>
-                          <div className="mt-1 text-sm text-red-400">
-                            {result.error}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    <TestCaseResult key={result.id} result={result} />
                   ))}
                 </div>
               )}
@@ -220,29 +145,5 @@ export function TestCaseList({ experimentId }: TestCaseListProps) {
         ))}
       </div>
     </ScrollArea>
-  );
-}
-
-interface MetricCardProps {
-  label: string;
-  value: number;
-}
-
-function MetricCard({ label, value }: MetricCardProps) {
-  const percentage = value.toFixed(2);
-  const color =
-    value >= 90
-      ? "text-green-400"
-      : value >= 70
-        ? "text-yellow-400"
-        : "text-red-400";
-
-  return (
-    <div className="rounded-lg bg-black/20 p-3">
-      <div className="text-xs font-medium text-white/60">{label}</div>
-      <div className={cn("mt-1 text-lg font-semibold", color)}>
-        {percentage}%
-      </div>
-    </div>
   );
 }

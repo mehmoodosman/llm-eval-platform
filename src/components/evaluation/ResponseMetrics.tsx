@@ -70,7 +70,11 @@ export function ResponseMetrics({ metrics }: ResponseMetricsProps) {
                 {formatMetricLabel(metric)}
               </div>
               <div className="font-semibold text-white/90 tabular-nums">
-                {formatNumber(score)} / 1.0
+                {metric === EvaluationMetric.COSINE_SIMILARITY ? (
+                  `${formatNumber(score * 100)}%`
+                ) : (
+                  <span>{formatNumber(score)} / 100</span>
+                )}
               </div>
             </div>
           ))}

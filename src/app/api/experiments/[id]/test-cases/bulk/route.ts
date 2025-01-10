@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { experiments, testCases, experimentTestCases } from "@/db/schema";
+import { experiments, experimentTestCases } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { EvaluationMetric } from "@/types/evaluation";
