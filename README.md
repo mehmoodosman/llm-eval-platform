@@ -14,9 +14,9 @@
 
 ![Screenshot 2025-01-09 at 7 24 29 PM](https://github.com/user-attachments/assets/e68b9752-1a32-424b-a224-0efe7127982b)
 
-
 ![Screenshot 2025-01-09 at 7 23 45 PM](https://github.com/user-attachments/assets/f98ab6db-b663-457f-9053-89aafbe4af15)
 
+![Screenshot 2025-01-09 at 7 38 44 PM](https://github.com/user-attachments/assets/d3777504-c693-42fc-af9e-3fe0cf086f7c)
 
 
 # Running Locally
