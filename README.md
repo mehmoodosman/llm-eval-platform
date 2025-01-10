@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LLM Evaluation Platform
 
-## Getting Started
+## Main features: 
+- Set up experiments with a unique system prompt and multiple LLM models
+- Evaluate the responses from the LLM models with certain metrics such as exact match, LLM judge, cosine similarity, etc. (more to come!)
+- Streaming responses from the LLM models to the frontend
+- Upload a json file with test cases to evaluate the overall performance of the LLM models and see which one is the best
+- Compare the response times, time to first token, tokens per second for each model using my own NPM library [llm-chain!](https://github.com/faizancodes/llm-chain)
+- Visualize the results with graphs
 
-First, run the development server:
+
+# Screenshots
+![Screenshot 2025-01-09 at 7 31 51 PM](https://github.com/user-attachments/assets/cb89e329-b722-4055-b593-cdb2c3d4287c)
+
+![Screenshot 2025-01-09 at 7 24 29 PM](https://github.com/user-attachments/assets/e68b9752-1a32-424b-a224-0efe7127982b)
+
+
+![Screenshot 2025-01-09 at 7 23 45 PM](https://github.com/user-attachments/assets/f98ab6db-b663-457f-9053-89aafbe4af15)
+
+
+
+# Running Locally
+
+First, clone the repository and install the dependencies:
+
+```bash
+git clone https://github.com/faizancodes/llm-eval-platform.git
+cd llm-eval-platform
+npm install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
