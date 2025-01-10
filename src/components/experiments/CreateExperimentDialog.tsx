@@ -93,6 +93,7 @@ export function CreateExperimentDialog({
       toast({
         title: "Success",
         description: "Experiment created successfully",
+        variant: "success",
       });
 
       // Reset form

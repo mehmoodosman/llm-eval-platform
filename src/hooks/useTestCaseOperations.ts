@@ -75,6 +75,7 @@ export function useTestCaseOperations(experimentId: string) {
       toast({
         title: "Success",
         description: `Uploaded ${result.count} test cases successfully. Click Evaluate to start testing.`,
+        variant: "success",
       });
 
       onSuccess?.();
@@ -124,6 +125,7 @@ export function useTestCaseOperations(experimentId: string) {
       toast({
         title: "Success",
         description: "All test cases have been evaluated",
+        variant: "success",
       });
 
       onSuccess?.();

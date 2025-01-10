@@ -55,9 +55,11 @@ export function CreateExperimentForm({ onSuccess }: CreateExperimentFormProps) {
       }
 
       const experiment = await response.json();
+
       toast({
         title: "Success",
         description: "Experiment created successfully",
+        variant: "success",
       });
 
       if (onSuccess) {
