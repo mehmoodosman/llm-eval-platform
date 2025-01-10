@@ -1,6 +1,13 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  XAxis,
+  Legend,
+} from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ChartContainer,
@@ -67,10 +74,13 @@ export function MetricsBarGraph({ responses }: MetricsBarGraphProps) {
     return dataPoint;
   });
 
-  const blueColors = [
-    "rgb(59, 130, 246)", // blue-500
-    "rgb(37, 99, 235)", // blue-600
-    "rgb(29, 78, 216)", // blue-700
+  const distinctColors = [
+    "rgb(59, 130, 246)", // blue
+    "rgb(236, 72, 153)", // pink
+    "rgb(34, 197, 94)", // green
+    "rgb(168, 85, 247)", // purple
+    "rgb(249, 115, 22)", // orange
+    "rgb(236, 72, 153)", // pink
   ];
 
   // Create config for all models
@@ -79,7 +89,7 @@ export function MetricsBarGraph({ responses }: MetricsBarGraphProps) {
       ...config,
       [response.model]: {
         label: response.model,
-        color: blueColors[index % blueColors.length],
+        color: distinctColors[index % distinctColors.length],
       },
     };
   }, {});
@@ -97,12 +107,17 @@ export function MetricsBarGraph({ responses }: MetricsBarGraphProps) {
               axisLine={false}
               className="fill-white/80"
             />
+            <Legend
+              verticalAlign="bottom"
+              height={36}
+              className="fill-white/80 pt-4"
+            />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             {validResponses.map((response, index) => (
               <Bar
                 key={response.model}
                 dataKey={response.model}
-                fill={blueColors[index % blueColors.length]}
+                fill={distinctColors[index % distinctColors.length]}
                 radius={8}
               >
                 <LabelList

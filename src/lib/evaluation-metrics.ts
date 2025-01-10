@@ -1,6 +1,8 @@
 import { EvaluationMetric } from "@/types/evaluation";
 import OpenAI from "openai";
 import { Logger } from "@/utils/logger";
+import { LLMClient } from "llm-chain";
+import { env } from "@/config/env";
 
 const logger = new Logger("EvaluationMetrics");
 
@@ -60,42 +62,75 @@ export async function llmJudge(
   response: string,
   expectedOutput: string
 ): Promise<number> {
-  const prompt = `You are an expert evaluator tasked with comparing a model's response against an expected output. Evaluate the semantic similarity, factual accuracy, and overall quality of the response.
+  const systemPrompt = `You are an expert evaluator specialized in comparing and rating model responses against expected outputs. Your evaluation must be precise, consistent, and based on clear criteria.
 
-Consider the following aspects in your evaluation:
-- Semantic similarity: How well does the response match the meaning and intent of the expected output?
-- Factual accuracy: Are all facts and details consistent with the expected output?
-- Completeness: Does the response cover all key points from the expected output?
-- Clarity and coherence: Is the response well-structured and clearly expressed?
+Evaluation Criteria:
+1. Semantic Similarity (40%)
+   - How well the response captures the core meaning
+   - Preservation of key concepts and relationships
+   - Contextual understanding
 
-Expected Output:
+2. Factual Accuracy (30%)
+   - Correctness of specific facts and details
+   - Absence of contradictions or errors
+   - Precision in technical details if present
+
+3. Completeness (20%)
+   - Coverage of all essential points
+   - Appropriate level of detail
+   - No missing critical information
+
+4. Clarity & Structure (10%)
+   - Clear and logical organization
+   - Professional and appropriate tone
+   - Effective communication
+
+Scoring Guide:
+90-100: Exceptional match with minimal to no differences
+80-89: Strong match with minor variations in expression
+70-79: Good match with some non-critical differences
+60-69: Acceptable match with notable differences
+50-59: Partial match with significant gaps
+0-49: Poor match or major discrepancies
+
+Return only a JSON object with a "score" field containing your rating from 0-100.`;
+
+  const userPrompt = `Please evaluate the following response against the expected output:
+
+<ExpectedOutput>
 ${expectedOutput}
+</ExpectedOutput>
 
-Actual Response:
+<ActualResponse>
 ${response}
+</ActualResponse>
 
-Rate the response on a scale of 0 to 100:
-- 90-100: Near perfect match in meaning and content
-- 70-89: Good match with minor differences
-- 50-69: Partial match with some key differences
-- 0-49: Poor match or significant differences
+Analyze the response according to the evaluation criteria and provide a score in JSON format.
 
-Return only a JSON object with a "score" field containing your rating from 0-100.
-Example: {"score": 85}`;
+IMPORTANT: DO NOT include backticks with 'json' in your response, just return the JSON object.
 
-  logger.info("LLM Judge prompt", { prompt });
+Example 1: 
+{"score": 85}
 
-  const result = await openai.chat.completions.create({
-    model: "gpt-4o",
+Example 2: 
+{"score": 40}
+`;
+
+  logger.info("LLM Judge prompts", { systemPrompt, userPrompt });
+
+  const geminiClient = LLMClient.createGemini(env.GOOGLE_API_KEY);
+
+  const result = await geminiClient.chatCompletion({
+    model: "gemini-1.5-flash",
     messages: [
-      { role: "system", content: "You are an expert evaluator." },
-      { role: "user", content: prompt },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
     ],
     response_format: { type: "json_object" },
   });
 
   logger.info("LLM Judge result", { result });
-  const score = JSON.parse(result.choices[0].message.content || "0");
+  const score = JSON.parse(result.message.content || "0");
   return score.score;
 }
 
