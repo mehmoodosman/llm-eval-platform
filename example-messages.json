@@ -1,0 +1,42 @@
+[
+  {
+    "userMessage": "How do I reset my password?",
+    "expectedOutput": "To reset your password, please follow these steps:\n1. Click on the 'Forgot Password' link on the login page\n2. Enter your email address\n3. Check your email for a password reset link\n4. Click the link and enter your new password\n5. Log in with your new password"
+  },
+  {
+    "userMessage": "What are your business hours?",
+    "expectedOutput": "Our customer service team is available:\nMonday to Friday: 9:00 AM - 8:00 PM EST\nSaturday: 10:00 AM - 6:00 PM EST\nSunday: Closed\n\nFor urgent matters, you can leave a message 24/7 and we'll respond on the next business day."
+  },
+  {
+    "userMessage": "I want to return a product I bought last week",
+    "expectedOutput": "I can help you with your return. Our return policy allows returns within 30 days of purchase. To start a return:\n1. Go to your order history\n2. Select the item you want to return\n3. Choose a reason for the return\n4. Print the prepaid shipping label\n5. Drop off the package at any authorized shipping location\n\nWould you like me to guide you through this process?"
+  },
+  {
+    "userMessage": "Where is my order? My order number is #12345",
+    "expectedOutput": "I'll help you track your order. Please allow me to look up the status using your order number. You can always check your order status in real-time by:\n1. Logging into your account\n2. Going to 'Order History'\n3. Clicking on the specific order number\n\nYou'll find detailed tracking information including estimated delivery date and current location."
+  },
+  {
+    "userMessage": "Do you ship internationally?",
+    "expectedOutput": "Yes, we offer international shipping to over 100 countries. Shipping costs and delivery times vary by location. International orders typically arrive within:\n- North America: 5-7 business days\n- Europe: 7-10 business days\n- Asia: 10-14 business days\n- Other regions: 14-21 business days\n\nPlease note that additional customs fees may apply depending on your country."
+  },
+  {
+    "userMessage": "I need to cancel my subscription",
+    "expectedOutput": "I can help you cancel your subscription. Before proceeding, please note that:\n1. Cancellations take effect at the end of your current billing cycle\n2. You'll maintain access to your services until then\n3. Any unused portion of your subscription is non-refundable\n\nWould you like me to guide you through the cancellation process?"
+  },
+  {
+    "userMessage": "The website is not loading properly",
+    "expectedOutput": "I'm sorry you're having trouble with the website. Let's try these troubleshooting steps:\n1. Clear your browser cache and cookies\n2. Try refreshing the page\n3. Use a different browser\n4. Check your internet connection\n\nIf the problem persists, please provide:\n- Your browser type and version\n- Your device/operating system\n- Any error messages you see"
+  },
+  {
+    "userMessage": "What payment methods do you accept?",
+    "expectedOutput": "We accept the following payment methods:\n- Credit/Debit Cards (Visa, MasterCard, American Express)\n- PayPal\n- Apple Pay\n- Google Pay\n- Bank Transfer (selected regions)\n\nAll payments are processed securely through our encrypted payment system."
+  },
+  {
+    "userMessage": "I received a damaged item",
+    "expectedOutput": "I'm very sorry to hear that your item arrived damaged. We'll make this right immediately. Please:\n1. Take photos of the damaged item and packaging\n2. Don't dispose of the item or packaging\n3. Contact our support team with:\n   - Your order number\n   - Photos of the damage\n   - Brief description of the issue\n\nWe'll process a replacement or refund within 1-2 business days."
+  },
+  {
+    "userMessage": "How can I track my refund?",
+    "expectedOutput": "You can track your refund status through your account:\n1. Log into your account\n2. Go to 'Order History'\n3. Find the refunded order\n4. Click 'Refund Status'\n\nRefund processing times:\n- Credit card: 5-10 business days\n- PayPal: 2-3 business days\n- Store credit: Immediate\n\nNeed to check a specific refund? Please provide your order number."
+  }
+]

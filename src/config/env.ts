@@ -11,6 +11,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string(),
   NODE_ENV: z.string(),
   DATABASE_URL: z.string(),
+  NEXT_PUBLIC_APP_URL: z.string(),
 });
 
 // Function to validate environment variables
@@ -23,6 +24,7 @@ const validateEnv = () => {
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,
       NODE_ENV: process.env.NODE_ENV,
       DATABASE_URL: process.env.DATABASE_URL,
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     };
     const parsed = envSchema.parse(env);
     logger.info("Environment variables validated successfully");

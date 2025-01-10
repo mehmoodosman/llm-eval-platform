@@ -1,15 +1,12 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Experiment } from "@/types/experiments";
 

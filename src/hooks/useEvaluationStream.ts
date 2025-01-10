@@ -139,7 +139,7 @@ export function useEvaluationStream(): UseEvaluationStreamReturn {
             exactMatchScore:
               response.metrics?.evaluation?.EXACT_MATCH?.toString(),
             llmMatchScore: response.metrics?.evaluation?.LLM_JUDGE
-              ? (response.metrics.evaluation.LLM_JUDGE / 100).toString()
+              ? response.metrics.evaluation.LLM_JUDGE.toString()
               : undefined,
             cosineSimilarityScore:
               response.metrics?.evaluation?.COSINE_SIMILARITY?.toString(),

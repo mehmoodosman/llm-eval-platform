@@ -201,30 +201,6 @@ export function TestCaseList({ experimentId }: TestCaseListProps) {
                         )}
                       </div>
 
-                      {result.metrics &&
-                        Object.keys(result.metrics).length > 0 && (
-                          <div>
-                            <div className="mb-2 text-xs font-medium text-white/60">
-                              Evaluation Metrics
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              {Object.entries(result.metrics).map(
-                                ([metric, score]) => (
-                                  <MetricCard
-                                    key={metric}
-                                    label={metric}
-                                    value={
-                                      typeof score === "number"
-                                        ? score * 100
-                                        : 0
-                                    }
-                                  />
-                                )
-                              )}
-                            </div>
-                          </div>
-                        )}
-
                       {result.error && (
                         <div className="rounded-lg border border-red-500/10 bg-red-500/5 p-4">
                           <div className="text-xs font-medium text-red-500">

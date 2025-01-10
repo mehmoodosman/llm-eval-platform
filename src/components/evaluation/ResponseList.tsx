@@ -7,6 +7,47 @@ import { ResponseHeader } from "./ResponseHeader";
 import { ResponseMetrics } from "./ResponseMetrics";
 import { Card } from "@/components/ui/card";
 import { MetricsBarGraph } from "./MetricsBarGraph";
+import { useEvaluationStore } from "@/stores/evaluation-store";
+import { Loader2 } from "lucide-react";
+
+function ResponseListLoading() {
+  const selectedModels = useEvaluationStore(state => state.selectedModels);
+
+  return (
+    <div className="mt-6 space-y-6">
+      {selectedModels.map((model, index) => (
+        <div
+          key={model}
+          className={cn(
+            "overflow-hidden rounded-xl bg-black/40 border backdrop-blur-sm transition-all duration-200",
+            "border-white/20 shadow-lg"
+          )}
+        >
+          <div className="flex items-center justify-between px-4 py-3 bg-white/5">
+            <div className="flex items-center space-x-3">
+              <h3 className="text-sm font-semibold text-white/90">{model}</h3>
+              <div className="flex items-center space-x-2">
+                <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-green-500/90">
+                  Evaluating
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4">
+            <div className="flex items-center justify-center py-8">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-6 w-6 animate-spin text-white/40" />
+                <p className="text-sm text-white/40">Generating response...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const ResponseItem = memo(function ResponseItem({
   response,
@@ -68,6 +109,11 @@ export function ResponseList({ responses, isStreaming }: ResponseListProps) {
   useEffect(() => {
     setLocalResponses(responses);
   }, [responses]);
+
+  // Show loading state when streaming starts but no responses yet
+  if (isStreaming && localResponses.length === 0) {
+    return <ResponseListLoading />;
+  }
 
   if (localResponses.length === 0) return null;
 

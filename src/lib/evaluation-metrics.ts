@@ -60,7 +60,13 @@ export async function llmJudge(
   response: string,
   expectedOutput: string
 ): Promise<number> {
-  const prompt = `You are an expert evaluator. Compare the following response with the expected output and rate it on a scale of 0 to 100, where 100 means perfect match in meaning and 0 means completely different.
+  const prompt = `You are an expert evaluator tasked with comparing a model's response against an expected output. Evaluate the semantic similarity, factual accuracy, and overall quality of the response.
+
+Consider the following aspects in your evaluation:
+- Semantic similarity: How well does the response match the meaning and intent of the expected output?
+- Factual accuracy: Are all facts and details consistent with the expected output?
+- Completeness: Does the response cover all key points from the expected output?
+- Clarity and coherence: Is the response well-structured and clearly expressed?
 
 Expected Output:
 ${expectedOutput}
@@ -68,11 +74,14 @@ ${expectedOutput}
 Actual Response:
 ${response}
 
-Return your answer in JSON format with a score between 0 and 100 representing the similarity score.
+Rate the response on a scale of 0 to 100:
+- 90-100: Near perfect match in meaning and content
+- 70-89: Good match with minor differences
+- 50-69: Partial match with some key differences
+- 0-49: Poor match or significant differences
 
-Example output:
-{"score": 70}
-`;
+Return only a JSON object with a "score" field containing your rating from 0-100.
+Example: {"score": 85}`;
 
   logger.info("LLM Judge prompt", { prompt });
 
@@ -87,7 +96,7 @@ Example output:
 
   logger.info("LLM Judge result", { result });
   const score = JSON.parse(result.choices[0].message.content || "0");
-  return score.score / 100;
+  return score.score;
 }
 
 // Main evaluation function that runs all selected metrics

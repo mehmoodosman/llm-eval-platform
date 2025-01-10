@@ -178,7 +178,7 @@ export function ExperimentResults({ experimentId }: ExperimentResultsProps) {
                     LLM Match
                   </div>
                   <div className="text-2xl font-semibold text-white/90">
-                    {modelAvg && ((modelAvg.llmMatch || 0) * 100).toFixed(2)}%
+                    {modelAvg && (modelAvg.llmMatch || 0).toFixed(2)}%
                   </div>
                 </div>
                 <div>
