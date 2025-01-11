@@ -24,9 +24,7 @@ export function ExperimentGrid({ experiments, onDelete }: ExperimentGridProps) {
           href={`/experiments/${experiment.id}`}
           className="block group"
         >
-          <Card
-            className="relative p-6 bg-gradient-to-br from-slate-900/90 to-slate-800/50 border-white/5 hover:border-white/10 transition-all duration-300 group overflow-hidden hover:shadow-lg hover:shadow-blue-500/5"
-          >
+          <Card className="relative p-6 bg-gradient-to-br from-slate-900/90 to-slate-800/50 border-white/5 hover:border-white/10 transition-all duration-300 group overflow-hidden hover:shadow-lg hover:shadow-blue-500/5">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative space-y-4">
               <div className="flex items-center justify-between">
@@ -50,9 +48,9 @@ export function ExperimentGrid({ experiments, onDelete }: ExperimentGridProps) {
                     {onDelete && (
                       <DropdownMenuItem
                         className="text-red-400 focus:bg-red-950 focus:text-red-400"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          onDelete(experiment.id)
+                        onClick={e => {
+                          e.preventDefault();
+                          onDelete(experiment.id);
                         }}
                       >
                         Delete
