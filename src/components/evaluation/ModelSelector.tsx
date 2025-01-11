@@ -84,7 +84,7 @@ export function ModelSelector({
           {open && (
             <div className="absolute z-50 top-full left-0 w-full mt-1">
               <div
-                className="rounded-lg border bg-slate-900 border-slate-800 shadow-lg overflow-hidden"
+                className="rounded-lg border bg-slate-900 border-slate-800 shadow-lg overflow-hidden max-h-[120px] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
               >
                 {LLM_MODELS.map(category => (

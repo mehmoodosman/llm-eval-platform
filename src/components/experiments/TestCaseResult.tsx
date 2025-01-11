@@ -39,7 +39,7 @@ export function TestCaseResult({ result }: TestCaseResultProps) {
         {result.cosineSimilarityScore && (
           <MetricCard
             label="Cosine Similarity"
-            value={parseFloat(result.cosineSimilarityScore)}
+            value={Number(result.cosineSimilarityScore) * 100}
           />
         )}
       </div>

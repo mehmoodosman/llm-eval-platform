@@ -1,0 +1,42 @@
+[
+  {
+    "userMessage": "How do I reset my password?",
+    "expectedOutput": "To reset your password, please follow these steps:\n1. Click on the 'Forgot Password' link on the login page\n2. Enter your email address\n3. Check your email for a password reset link\n4. Click the link and enter your new password\n5. Log in with your new password"
+  },
+  {
+    "userMessage": "Who should I contact about an issue with my project?",
+    "expectedOutput": "For any project-related issues, please contact Faizan on Slack for assistance."
+  },
+  {
+    "userMessage": "I have a question about the program. Who can help me?",
+    "expectedOutput": "For any program-related issues, please email Yasin at contact@theheadstarter.com for support."
+  },
+  {
+    "userMessage": "I’m not receiving the password reset email. What should I do?",
+    "expectedOutput": "Please check your spam or junk folder to ensure the email isn’t there. If you still can’t find it, contact us directly for further assistance."
+  },
+  {
+    "userMessage": "Can I update my project details after submission?",
+    "expectedOutput": "Yes, you can update your project details. If you encounter any issues, please contact Faizan on Slack for further assistance."
+  },
+  {
+    "userMessage": "I sent an email to contact@theheadstarter.com but haven’t received a response. What now?",
+    "expectedOutput": "Please allow 1-2 business days for a response. If it’s urgent, let us know so we can follow up on your behalf."
+  },
+  {
+    "userMessage": "What are the working hours for support?",
+    "expectedOutput": "Our support team is available Monday to Friday from 9:00 AM to 6:00 PM. Feel free to reach out during these hours for assistance."
+  },
+  {
+    "userMessage": "Can you help me connect with Faizan?",
+    "expectedOutput": "For project-related issues, you can reach Faizan directly on Slack. Let me know if you need further guidance."
+  },
+  {
+    "userMessage": "How do I submit a new project proposal?",
+    "expectedOutput": "To submit a new project proposal, log in to your account, navigate to the 'Projects' section, and click on 'Submit Proposal.' If you encounter issues, please contact Faizan on Slack."
+  },
+  {
+    "userMessage": "Is there a phone number I can call for support?",
+    "expectedOutput": "Currently, we provide support via email and Slack. For program-related inquiries, email Yasin at contact@theheadstarter.com, and for project-related concerns, contact Faizan on Slack."
+  }
+]
